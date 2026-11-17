@@ -1,0 +1,6 @@
+[
+  {"name":"Conference on Neural Information Processing Systems","acronym":"NeurIPS 2027","kind":"main_track","deadline":"2027-05-15","deadline_type":"full_paper","archival":true,"indexing":"OpenReview/NeurIPS Proceedings","location":"a definir","topics":["IA","ML"],"url":"https://neurips.cc/"},
+  {"name":"Workshop on Fairness in Face Analysis","acronym":"FairFace 2027","kind":"workshop","parent_conference":"CVPR 2027","deadline":"2026-12-01","deadline_type":"extended_abstract","archival":false,"location":"online","topics":["fairness","visão"],"url":"https://example.org/fairface"},
+  {"name":"Sem data","acronym":"X","kind":"workshop","deadline":null,"url":"https://example.org"},
+  {"name":"Vencido","acronym":"OLD 2026","kind":"main_track","deadline":"2026-01-01","url":"https://example.org/old"}
+]
