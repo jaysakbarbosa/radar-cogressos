@@ -17,7 +17,11 @@
     "eventos brasileiros e latino-americanos de IA, computação e visão (BRACIS, STIL, SBSeg, SIBGRAPI, WVC, LatinX in AI)",
     "mulheres e diversidade em IA/computação (WiML, LatinX in AI, Queer in AI, Black in AI, Women in Computer Vision)",
     "conferências internacionais de topo (Qualis A1 em Ciência da Computação) em IA, visão, NLP, mineração de dados, segurança, HCI e saúde, em qualquer país",
-    "workshops de conferências Qualis A1 (NeurIPS, ICML, ICLR, CVPR, ICCV, ECCV, AAAI, IJCAI, ACL, EMNLP, KDD, MICCAI, CCS, IEEE S&P, USENIX Security) abertos para submissão"
+    "workshops de conferências Qualis A1 (NeurIPS, ICML, ICLR, CVPR, ICCV, ECCV, AAAI, IJCAI, ACL, EMNLP, KDD, MICCAI, CCS, IEEE S&P, USENIX Security) abertos para submissão",
+    "tecnologia em geral: ciência da computação, engenharia de software, sistemas distribuídos, redes, bancos de dados, big data, nuvem, IoT, computação quântica e blockchain",
+    "interação humano-computador, jogos, realidade virtual/aumentada, educação em computação e computação social",
+    "engenharia elétrica, eletrônica, robótica, automação, sistemas embarcados e telecomunicações",
+    "tecnologia aplicada: saúde digital, agricultura, cidades inteligentes, energia, finanças e governo digital"
   ],
   "watchlist": [
     "NeurIPS (ciclo 2027, main track e workshops)",
@@ -53,7 +57,17 @@
     "CRYPTO",
     "Eurocrypt",
     "MIDL",
-    "ML4H"
+    "ML4H",
+    "IEEE COMPSAC",
+    "AIME (Artificial Intelligence in Medicine)",
+    "DATE (Design, Automation and Test in Europe)",
+    "Computing Conference (SAI)",
+    "ICMLA",
+    "IJCNN",
+    "IEEE EMBC",
+    "ISBI",
+    "IEEE SMC",
+    "SaTML"
   ],
   "priority_keywords": [
     "neurips",
@@ -65,5 +79,15 @@
     "facct",
     "ijcb"
   ],
-  "min_qualis": "C"
+  "min_qualis": "C",
+  "ieee_areas": [
+    "engenharia de software, sistemas e aplicações (COMPSAC e similares)",
+    "projeto de hardware, automação, sistemas embarcados e testes (DATE e similares)",
+    "informática médica, imagens médicas e IA na saúde (EMBC, ISBI, BHI, AIME, CBMS)",
+    "IA, redes neurais e computação inteligente (IJCNN, FUZZ-IEEE, SSCI, CEC)",
+    "processamento de sinais, imagem e vídeo (ICASSP, ICIP, ICME, ICMLA)",
+    "segurança, privacidade, criptografia e forense (IEEE S&P, EuroS&P, SaTML, WIFS)",
+    "comunicações, IoT, computação em nuvem e borda (CLOUD, ICDCS, INFOCOM, WF-IoT)",
+    "robótica e sistemas autônomos (ICRA, IROS, SMC)"
+  ]
 }
