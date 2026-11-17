@@ -80,10 +80,18 @@ def http_json(url, payload=None, headers=None, timeout=240, retries=4):
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read().decode())
         except urllib.error.HTTPError as e:
-            body = e.read().decode(errors="replace")[:300]
+            body = e.read().decode(errors="replace")[:500]
             last = f"HTTP {e.code}: {body}"
             if e.code not in (429, 500, 502, 503, 504):
                 break
+            if e.code == 429:
+                m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", body)
+                wait = (int(m.group(1) or 0) * 60 + float(m.group(2))) if m else 0
+                if wait > 90 or "per day" in body:
+                    break  # limite diário: esperar não adianta
+                if wait:
+                    time.sleep(wait + 1)
+                    continue
         except Exception as e:  # rede, timeout
             last = repr(e)
         time.sleep(5 * (attempt + 1))
@@ -111,7 +119,8 @@ SYSTEM_MSG = (
 
 
 def _missing(e):
-    return "model_not_found" in str(e) or "does not exist" in str(e)
+    t = str(e)
+    return "model_not_found" in t or "does not exist" in t or "per day" in t or "tokens per day" in t
 
 
 def _announce(label):
@@ -126,6 +135,9 @@ def _chat(model, prompt, key, browser=False):
         "temperature": 0.1,
         "messages": [{"role": "system", "content": SYSTEM_MSG}, {"role": "user", "content": prompt}],
     }
+    payload["max_completion_tokens"] = 3500
+    if model.startswith("openai/gpt-oss"):
+        payload["reasoning_effort"] = "low"
     if browser:
         payload["tools"] = [{"type": "browser_search"}]
     res = http_json(GROQ_URL, payload, headers={"Authorization": f"Bearer {key}"})
@@ -138,13 +150,13 @@ def tavily_context(query):
         return None
     res = http_json(
         TAVILY_URL,
-        {"query": query[:380], "max_results": 10, "search_depth": "basic"},
+        {"query": query[:380], "max_results": 8, "search_depth": "basic"},
         headers={"Authorization": f"Bearer {key}"},
         timeout=60,
     )
     rows = []
     for n, r in enumerate(res.get("results", []), 1):
-        rows.append(f"[{n}] {r.get('title', '')}\n{r.get('url', '')}\n{(r.get('content') or '')[:700]}")
+        rows.append(f"[{n}] {r.get('title', '')}\n{r.get('url', '')}\n{(r.get('content') or '')[:450]}")
     return "\n\n".join(rows)
 
 
@@ -159,7 +171,7 @@ def groq_search(prompt, query=None):
             out = _chat(model, prompt, key)
         except RuntimeError as e:
             if _missing(e):
-                print(f"modelo {model} indisponível nesta conta", file=sys.stderr)
+                print(f"modelo {model} indisponível (sem acesso ou cota diária esgotada), tentando o próximo", file=sys.stderr)
                 _BAD_MODELS.add(model)
                 last = e
                 continue
@@ -182,7 +194,7 @@ def groq_search(prompt, query=None):
                     out = _chat(model, p2, key)
                 except RuntimeError as e:
                     if _missing(e):
-                        print(f"modelo {model} indisponível nesta conta", file=sys.stderr)
+                        print(f"modelo {model} indisponível (sem acesso ou cota diária esgotada), tentando o próximo", file=sys.stderr)
                         _BAD_MODELS.add(model)
                         last = e
                         continue
