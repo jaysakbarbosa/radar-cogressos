@@ -115,7 +115,10 @@ _BAD_MODELS = set()
 _ANNOUNCED = set()
 SYSTEM_MSG = (
     "Você é um assistente de pesquisa acadêmica. Use a busca na web e "
-    "confie apenas em páginas oficiais de call for papers. Nunca invente datas ou URLs."
+    "confie apenas em páginas oficiais de call for papers. Nunca invente datas ou URLs. "
+    "Só informe um prazo se a data aparecer escrita nos resultados da busca; nunca use a data de hoje como prazo "
+    "e nunca estime pelo ano anterior. Se o prazo não estiver claro, deixe o campo deadline como null. "
+    "Ignore edições cujo prazo já passou."
 )
 
 
@@ -358,7 +361,7 @@ def clean(items):
             d = dt.date.fromisoformat(str(it.get("deadline"))[:10])
         except ValueError:
             continue
-        if d < TODAY or (d - TODAY).days > CFG["horizon_days"] + 60:
+        if d <= TODAY or (d - TODAY).days > CFG["horizon_days"] + 60:
             continue
         url = str(it.get("url") or "")
         if not url.startswith("http") or not (it.get("name") or it.get("acronym")):
