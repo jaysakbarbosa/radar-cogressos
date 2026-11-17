@@ -239,7 +239,8 @@ def groq_search(prompt, query=None):
 
 def theme_prompt(theme):
     return (
-        f"Hoje é {TODAY.isoformat()}. Pesquise congressos, conferências e workshops acadêmicos sobre: {theme}. Liste o MÁXIMO possível (pelo menos 10), não só os mais famosos.\n"
+        f"Hoje é {TODAY.isoformat()}. Pesquise congressos, conferências e workshops acadêmicos sobre: {theme}. Liste o MÁXIMO possível (pelo menos 10), não só os mais famosos. "
+        f"Considere páginas em português e em inglês e inclua os eventos brasileiros (SBC e outros).\n"
         f"Quero os que têm prazo de submissão de artigos ABERTO agora ou que vence nos próximos "
         f"{CFG['horizon_days']} dias. Inclua tanto a conferência principal (main_track) quanto workshops "
         f"associados. Só inclua itens com data de prazo confirmada em página oficial e URL oficial.\n\n{SCHEMA}"
@@ -260,7 +261,7 @@ def watch_prompt(names):
     return (
         f"Hoje é {TODAY.isoformat()}. Verifique na web o prazo de submissão atual/próximo (ainda não vencido, "
         f"dentro de {CFG['horizon_days']} dias) de cada um destes eventos, tanto da conferência principal quanto dos "
-        f"workshops, quando já houver call for papers: {', '.join(names)}.\n"
+        f"workshops, quando já houver call for papers ou chamada de trabalhos (páginas em português ou inglês): {', '.join(names)}.\n"
         f"Omita os que ainda não divulgaram datas.\n\n{SCHEMA}"
     )
 
@@ -281,6 +282,12 @@ def collect_items(mock=None):
     for k in range(0, len(wl), 3):
         grp = wl[k : k + 3]
         jobs.append((watch_prompt(grp), f"{' '.join(grp)} 2027 call for papers submission deadline"))
+    for t in CFG.get("pt_themes", []):
+        jobs.append((theme_prompt(t), f"{_head(t)} chamada de trabalhos 2027 prazo de submissão"))
+    wb = CFG.get("watchlist_br", [])
+    for k in range(0, len(wb), 3):
+        grp = wb[k : k + 3]
+        jobs.append((watch_prompt(grp), f"{' '.join(grp)} 2027 chamada de trabalhos prazo de submissão"))
     for area in CFG.get("ieee_areas", []):
         jobs.append(
             (
@@ -299,6 +306,19 @@ def collect_items(mock=None):
                 f"Springer, Elsevier e outros) cujo prazo de submissão de artigos cai em {d.strftime('%m/%Y')}. "
                 f"Só com data confirmada em página oficial e URL oficial.\n\n{SCHEMA}",
                 f"call for papers submission deadline {d.strftime('%B %Y')} computer science artificial intelligence conference",
+            )
+        )
+    meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+    for k in range(6):
+        m = first.month - 1 + k
+        d = dt.date(first.year + m // 12, m % 12 + 1, 1)
+        jobs.append(
+            (
+                f"Hoje é {TODAY.isoformat()}. Liste o MÁXIMO possível (pelo menos 15) de simpósios, congressos e workshops brasileiros e "
+                f"latino-americanos de computação (SBC e outros: sistemas colaborativos, redes, banco de dados, engenharia de software, "
+                f"IHC, educação, IA, visão, segurança, saúde digital) cujo prazo de submissão de artigos cai em {d.strftime('%m/%Y')}. "
+                f"Use páginas em português. Só com data confirmada em página oficial e URL oficial.\n\n{SCHEMA}",
+                f"chamada de trabalhos simpósio brasileiro SBC 2027 prazo de submissão {meses[d.month - 1]} {d.year}",
             )
         )
     items = []
