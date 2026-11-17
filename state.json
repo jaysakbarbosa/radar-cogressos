@@ -13,7 +13,9 @@
    "name": "Artificial Intelligence in Medicine",
    "parent_conference": null,
    "qualis": "A1",
-   "reminded": [],
+   "reminded": [
+    14
+   ],
    "topics": [
     "AI in Medicine",
     "Healthcare",
@@ -34,7 +36,11 @@
    "name": "Chamada Atlânticas",
    "parent_conference": null,
    "qualis": null,
-   "reminded": [],
+   "reminded": [
+    14,
+    7,
+    2
+   ],
    "topics": [
     "bolsa",
     "mulheres negras",
@@ -118,7 +124,9 @@
    "name": "Programa Futuras Cientistas",
    "parent_conference": null,
    "qualis": null,
-   "reminded": [],
+   "reminded": [
+    14
+   ],
    "topics": [
     "capacitação",
     "mulheres em ciência",
@@ -139,7 +147,11 @@
    "name": "Human-Robot Interaction",
    "parent_conference": null,
    "qualis": "A1",
-   "reminded": [],
+   "reminded": [
+    14,
+    7,
+    2
+   ],
    "topics": [
     "human-robot interaction",
     "robotics",
@@ -160,7 +172,11 @@
    "name": "International Conference on Learning Representations 2027",
    "parent_conference": null,
    "qualis": "A1",
-   "reminded": [],
+   "reminded": [
+    14,
+    7,
+    2
+   ],
    "topics": [
     "Deep Learning",
     "AI"
@@ -262,7 +278,11 @@
    "name": "INTED2027",
    "parent_conference": null,
    "qualis": null,
-   "reminded": [],
+   "reminded": [
+    14,
+    7,
+    2
+   ],
    "topics": [
     "Technology",
     "Education",
@@ -304,7 +324,9 @@
    "name": "IEEE Latin American Conference on Internet of Things 2027",
    "parent_conference": null,
    "qualis": "B1",
-   "reminded": [],
+   "reminded": [
+    14
+   ],
    "topics": [
     "IoT",
     "Cyber Physical Systems",
@@ -429,7 +451,9 @@
    "name": "IEEE/IFIP Network Operations and Management Symposium 2027",
    "parent_conference": null,
    "qualis": "A1",
-   "reminded": [],
+   "reminded": [
+    14
+   ],
    "topics": [
     "Network Operations",
     "Management",
@@ -450,7 +474,11 @@
    "name": "Bolsas PROINTER Mestrado STEM",
    "parent_conference": null,
    "qualis": null,
-   "reminded": [],
+   "reminded": [
+    14,
+    7,
+    2
+   ],
    "topics": [
     "bolsa",
     "mestrado",
@@ -472,7 +500,11 @@
    "name": "Robotics, Automation & Intelligent Systems",
    "parent_conference": null,
    "qualis": null,
-   "reminded": [],
+   "reminded": [
+    14,
+    7,
+    2
+   ],
    "topics": [
     "robotics",
     "automation",
@@ -595,7 +627,9 @@
    "name": "VISAPP 2027",
    "parent_conference": null,
    "qualis": null,
-   "reminded": [],
+   "reminded": [
+    14
+   ],
    "topics": [
     "Computer Vision",
     "Image Processing"
