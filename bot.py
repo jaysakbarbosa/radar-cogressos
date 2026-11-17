@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Radar Congressos: avisa no Telegram sobre congressos/workshops com submissão aberta.
+"""Radar Congressos: avisa no Telegram sobre congressos/workshops com submissão aberta
+e acompanha os artigos que você submeteu (revisão, resposta, camera-ready).
 
 Modos:
-  python bot.py                 # varredura completa (Groq + busca na web) + envio
-  python bot.py --reminders     # só lembretes de prazos já conhecidos (sem API de IA)
+  python bot.py                 # varredura completa (Groq + busca na web) + lembretes + comandos
+  python bot.py --reminders     # só lembretes de prazos e datas dos seus artigos + comandos
+  python bot.py --poll          # só lê e responde seus comandos do Telegram
   python bot.py --dry-run       # imprime em vez de enviar; não grava estado
   python bot.py --mock f.json   # usa itens de um arquivo em vez do Groq (teste)
+  python bot.py --say "/ajuda"  # simula um comando seu (teste local)
   python bot.py --get-chat-id   # descobre seu chat_id depois de mandar /start pro bot
 
 Somente biblioteca padrão do Python 3.9+.
@@ -23,10 +26,20 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).parent
-STATE_FILE = ROOT / "state.json"
+STATE_FILE = Path(os.environ.get("RADAR_STATE", ROOT / "state.json"))
 CFG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 TODAY = dt.date.today()
+MS_DAYS = CFG.get("milestone_reminder_days", [14, 7, 2, 0])
+QRANK = {"A1": 0, "A2": 1, "A3": 2, "A4": 3, "B1": 4, "B2": 5, "B3": 6, "B4": 7, "B5": 8, "C": 9}
+INACTIVE = ("rejeitado", "retirado")
+STATUS_ALIAS = {
+    "submetido": "submetido",
+    "revisao": "em revisão", "revisão": "em revisão", "revisado": "em revisão", "emrevisao": "em revisão",
+    "aceito": "aceito", "aceita": "aceito", "aprovado": "aceito",
+    "rejeitado": "rejeitado", "rejeitada": "rejeitado", "negado": "rejeitado", "recusado": "rejeitado",
+    "retirado": "retirado", "retirei": "retirado",
+}
 
 SCHEMA = """Retorne SOMENTE um array JSON (sem texto antes ou depois), com objetos neste formato:
 {
@@ -46,8 +59,12 @@ SCHEMA = """Retorne SOMENTE um array JSON (sem texto antes ou depois), com objet
 }"""
 
 
+def esc(s):
+    return html.escape(str(s))
+
+
 # ---------------------------------------------------------------- HTTP helpers
-def http_json(url, payload=None, headers=None, timeout=240, retries=3):
+def http_json(url, payload=None, headers=None, timeout=240, retries=4):
     data = json.dumps(payload).encode() if payload is not None else None
     hdrs = {"Content-Type": "application/json", **(headers or {})}
     last = None
@@ -102,7 +119,7 @@ def groq_search(prompt):
 
 def theme_prompt(theme):
     return (
-        f"Hoje é {TODAY.isoformat()}. Pesquise congressos, conferências e workshops acadêmicos sobre: {theme}.\n"
+        f"Hoje é {TODAY.isoformat()}. Pesquise congressos, conferências e workshops acadêmicos sobre: {theme}. Liste o MÁXIMO possível (pelo menos 10), não só os mais famosos.\n"
         f"Quero os que têm prazo de submissão de artigos ABERTO agora ou que vence nos próximos "
         f"{CFG['horizon_days']} dias. Inclua tanto a conferência principal (main_track) quanto workshops "
         f"associados. Só inclua itens com data de prazo confirmada em página oficial e URL oficial.\n\n{SCHEMA}"
@@ -125,6 +142,18 @@ def collect_items(mock=None):
     wl = CFG["watchlist"]
     for k in range(0, len(wl), 7):
         prompts.append(watch_prompt(wl[k : k + 7]))
+    for area in CFG.get("ieee_areas", []):
+        prompts.append(theme_prompt(f"conferências e workshops IEEE (e co-patrocinados pela IEEE Computer Society) de {area}"))
+    # varredura por mês de prazo: pega eventos que os temas não cobrem
+    first = TODAY.replace(day=1)
+    for k in range(8):
+        m = first.month - 1 + k
+        d = dt.date(first.year + m // 12, m % 12 + 1, 1)
+        prompts.append(
+            f"Hoje é {TODAY.isoformat()}. Liste o MÁXIMO possível (pelo menos 15) de conferências e workshops acadêmicos de "
+            f"computação, IA, visão, saúde digital, segurança e engenharia (IEEE, ACM, Springer, Elsevier e outros) cujo prazo de "
+            f"submissão de artigos cai em {d.strftime('%m/%Y')}. Só com data confirmada em página oficial e URL oficial.\n\n{SCHEMA}"
+        )
     items = []
     for n, p in enumerate(prompts, 1):
         try:
@@ -137,6 +166,33 @@ def collect_items(mock=None):
     return items
 
 
+def lookup_milestones(name, url):
+    """Datas pós-submissão (revisão, resposta, aceite, camera-ready, evento) do evento."""
+    if not os.environ.get("GROQ_API_KEY"):
+        return []
+    prompt = (
+        f"Hoje é {TODAY.isoformat()}. Um artigo foi submetido para: {name}" + (f" ({url})" if url else "") + ".\n"
+        "Pesquise no site oficial as próximas datas importantes DEPOIS da submissão: divulgação das revisões, "
+        "período de rebuttal/discussão, notificação de aceite, camera-ready e data do evento. "
+        "Só inclua datas confirmadas no site oficial e ainda não passadas.\n"
+        'Retorne SOMENTE um array JSON: [{"label": "Notificação de aceite", "date": "YYYY-MM-DD"}]'
+    )
+    try:
+        got = groq_search(prompt)
+    except Exception as e:
+        print(f"lookup falhou: {e}", file=sys.stderr)
+        return []
+    out = []
+    for g in got:
+        try:
+            d = dt.date.fromisoformat(str(g.get("date"))[:10])
+        except ValueError:
+            continue
+        if d >= TODAY and g.get("label"):
+            out.append({"label": str(g["label"])[:60], "date": d.isoformat()})
+    return out
+
+
 # ---------------------------------------------------------------- normalização
 def norm_key(it):
     base = (it.get("acronym") or it.get("name") or "").lower()
@@ -144,11 +200,8 @@ def norm_key(it):
     return f"{base}|{it.get('kind', 'main_track')}|{(it.get('parent_conference') or '').lower()[:12]}"
 
 
-QRANK = {"A1": 0, "A2": 1, "A3": 2, "A4": 3, "B1": 4, "B2": 5, "B3": 6, "B4": 7, "B5": 8, "C": 9}
-
-
 def clean(items):
-    out, seen = {}, set()
+    out = {}
     for it in items:
         if not isinstance(it, dict):
             continue
@@ -179,20 +232,25 @@ def br(d):
     return dt.date.fromisoformat(d).strftime("%d/%m/%Y")
 
 
+def days_left(d):
+    return (dt.date.fromisoformat(d) - TODAY).days
+
+
 def is_priority(it):
     s = f"{it.get('name', '')} {it.get('acronym', '')} {it.get('parent_conference', '')}".lower()
     return any(k in s for k in CFG["priority_keywords"])
 
 
 def fmt_item(it):
-    left = (dt.date.fromisoformat(it["deadline"]) - TODAY).days
+    left = days_left(it["deadline"])
     star = "⭐ " if is_priority(it) and it["kind"] == "main_track" else ""
     icon = "📄 PUBLICAR (main track)" if it["kind"] == "main_track" else "🧩 Workshop"
-    title = html.escape(it.get("acronym") or it.get("name"))
-    lines = [f"{star}<b>{title}</b>"]
+    title = esc(it.get("acronym") or it.get("name"))
+    num = f" · #{it['id']}" if it.get("id") else ""
+    lines = [f"{star}<b>{title}</b>{num}"]
     if it.get("name") and it.get("acronym") and it["name"] != it["acronym"]:
-        lines.append(html.escape(it["name"]))
-    lines.append(icon + (f" · em {html.escape(it['parent_conference'])}" if it.get("parent_conference") else ""))
+        lines.append(esc(it["name"]))
+    lines.append(icon + (f" · em {esc(it['parent_conference'])}" if it.get("parent_conference") else ""))
     who = "Qualis do evento principal" if it["kind"] == "workshop" else "Qualis"
     lines.append(f"🏅 {who}: {it['qualis']}" if it.get("qualis") else f"🏅 {who}: não confirmado")
     dtype = {"full_paper": "artigo completo", "abstract": "abstract", "extended_abstract": "resumo estendido", "poster": "poster"}.get(
@@ -209,11 +267,25 @@ def fmt_item(it):
     if it.get("location"):
         meta.append(str(it["location"]))
     if meta:
-        lines.append("ℹ️ " + html.escape(" · ".join(meta)))
+        lines.append("ℹ️ " + esc(" · ".join(meta)))
     if it.get("topics"):
-        lines.append("🏷 " + html.escape(", ".join(map(str, it["topics"][:5]))))
+        lines.append("🏷 " + esc(", ".join(map(str, it["topics"][:5]))))
     lines.append(f'🔗 <a href="{html.escape(it["url"], quote=True)}">Call for papers</a>')
     return "\n".join(lines)
+
+
+def fmt_compact(it):
+    star = "⭐ " if is_priority(it) and it["kind"] == "main_track" else ""
+    kind = "📄" if it["kind"] == "main_track" else "🧩"
+    title = esc(it.get("acronym") or it.get("name"))
+    num = f"#{it['id']} " if it.get("id") else ""
+    q = it.get("qualis") or "Qualis ?"
+    host = f" (em {esc(it['parent_conference'])})" if it.get("parent_conference") else ""
+    return (
+        f"{star}{kind} {num}<b>{title}</b>{host} · 🏅{esc(q)}\n"
+        f"📅 {br(it['deadline'])} · faltam {days_left(it['deadline'])} dias · "
+        f'<a href="{html.escape(it["url"], quote=True)}">CFP</a>'
+    )
 
 
 def order(items):
@@ -221,13 +293,13 @@ def order(items):
 
 
 def build_messages(sections):
-    """sections: [(titulo, [itens])] -> lista de textos <= 4000 chars."""
+    """sections: [(titulo, [blocos de texto])] -> lista de textos <= 4000 chars."""
     msgs, cur = [], ""
-    for title, items in sections:
+    for title, blocks in sections:
         head = f"<b>{title}</b>\n\n"
         started = False
-        for it in order(items):
-            body = fmt_item(it) + "\n\n"
+        for b in blocks:
+            body = b + "\n\n"
             if cur and len(cur) + len(body) + len(head) > 3900:
                 msgs.append(cur)
                 cur, started = "", False  # nova mensagem repete o título da seção
@@ -268,65 +340,269 @@ def get_chat_id():
 
 # ---------------------------------------------------------------- estado
 def load_state():
-    if STATE_FILE.exists():
-        return json.loads(STATE_FILE.read_text(encoding="utf-8"))
-    return {}
+    st = json.loads(STATE_FILE.read_text(encoding="utf-8")) if STATE_FILE.exists() else {}
+    st.setdefault("events", {})
+    st.setdefault("subs", [])
+    st.setdefault("offset", 0)
+    st.setdefault("next_id", 1)
+    st.setdefault("next_sub", 1)
+    st.setdefault("ignored", [])
+    return st
 
 
 def save_state(st):
     STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
 
 
+def due_thresholds(left, reminded, days):
+    """True (e marca como avisado) se cruzou um limiar de lembrete ainda não avisado."""
+    if any(left <= r and r not in reminded for r in days):
+        reminded.extend(x for x in days if x >= left and x not in reminded)
+        return True
+    return False
+
+
+# ---------------------------------------------------------------- seus artigos
+HELP = (
+    "<b>Comandos</b>\n"
+    "/eventos: lista os prazos abertos com número (#)\n"
+    "/submeti 12: registra que você submeteu o evento #12\n"
+    "/submeti Nome do evento: registra um evento que não está na lista\n"
+    "/minhas: seus artigos e as próximas datas\n"
+    "/status S1 revisao | aceito | rejeitado | retirado\n"
+    "/data S1 Notificação 2027-08-20: adiciona ou corrige uma data\n"
+    "/remover S1: apaga o registro\n"
+    "/ignorar 12: esconde o evento #12 e não avisa mais dele\n\n"
+    "Eu respondo em até ~3h e lembro 14, 7 e 2 dias antes de cada data, e no dia."
+)
+
+
+def sub_by_id(st, tok):
+    try:
+        n = int(re.sub(r"^[sS]", "", tok))
+    except ValueError:
+        return None
+    return next((s for s in st["subs"] if s["id"] == n), None)
+
+
+def fmt_sub(s):
+    lines = [f"<b>S{s['id']} · {esc(s['name'])}</b> — {esc(s['status'])}"]
+    ms = sorted((m for m in s["milestones"] if days_left(m["date"]) >= 0), key=lambda m: m["date"])
+    for m in ms:
+        left = days_left(m["date"])
+        lines.append(f"  • {esc(m['label'])}: {br(m['date'])} ({'hoje' if left == 0 else f'em {left} dias'})")
+    if not ms:
+        lines.append("  (sem datas futuras; use /data para adicionar)")
+    if s.get("url"):
+        lines.append(f'  🔗 <a href="{html.escape(s["url"], quote=True)}">site</a>')
+    return "\n".join(lines)
+
+
+def merge_milestones(sub, found):
+    """Atualiza datas vindas da busca; não sobrescreve as manuais. Retorna textos do que mudou."""
+    changes = []
+    by_label = {m["label"].lower(): m for m in sub["milestones"]}
+    for f in found:
+        cur = by_label.get(f["label"].lower())
+        if cur is None:
+            sub["milestones"].append({"label": f["label"], "date": f["date"], "reminded": []})
+            changes.append(f"nova: {f['label']} em {br(f['date'])}")
+        elif not cur.get("manual") and cur["date"] != f["date"]:
+            changes.append(f"{cur['label']}: {br(cur['date'])} → {br(f['date'])}")
+            cur["date"], cur["reminded"] = f["date"], []
+    return changes
+
+
+def handle(text, st):
+    parts = text.strip().split(maxsplit=1)
+    cmd = parts[0].lstrip("/").split("@")[0].lower()
+    arg = parts[1].strip() if len(parts) > 1 else ""
+
+    if cmd in ("start", "ajuda", "help"):
+        return "📡 <b>Radar Congressos</b>\n\n" + HELP
+
+    if cmd == "eventos":
+        evs = sorted(st["events"].values(), key=lambda i: i["deadline"])[:25]
+        if not evs:
+            return "Ainda não tenho eventos na lista. A busca completa roda toda sexta às 12h."
+        rows = [f"#{e.get('id', '?')} · {esc(e.get('acronym') or e['name'])} · {br(e['deadline'])}" for e in evs]
+        return "<b>Prazos abertos</b>\n" + "\n".join(rows) + "\n\nPara registrar: /submeti número"
+
+    if cmd in ("submeti", "submetido", "submetida"):
+        if not arg:
+            return "Use /submeti 12 (número do evento) ou /submeti Nome do evento."
+        ev = None
+        if arg.lstrip("#").isdigit():
+            ev = next((e for e in st["events"].values() if str(e.get("id")) == arg.lstrip("#")), None)
+            if not ev:
+                return "Não achei esse número. Veja /eventos."
+        name = (ev.get("acronym") or ev["name"]) if ev else arg
+        url = ev.get("url") if ev else None
+        sub = {"id": st["next_sub"], "name": name, "url": url, "status": "submetido", "milestones": [], "created": TODAY.isoformat()}
+        st["next_sub"] += 1
+        found = lookup_milestones(name, url)
+        merge_milestones(sub, found)
+        st["subs"].append(sub)
+        extra = "" if found else (
+            "\n\nNão consegui achar as datas pós-submissão. Confira no site e adicione com "
+            f"/data S{sub['id']} Notificação 2027-08-20"
+        )
+        return f"✅ Registrado.\n\n{fmt_sub(sub)}{extra}\n\nConfira as datas no site oficial."
+
+    if cmd == "minhas":
+        if not st["subs"]:
+            return "Você ainda não registrou nenhum artigo. Use /submeti."
+        return "<b>Seus artigos</b>\n\n" + "\n\n".join(fmt_sub(s) for s in st["subs"])
+
+    if cmd == "status":
+        tok, _, val = arg.partition(" ")
+        s = sub_by_id(st, tok) if tok else None
+        new = STATUS_ALIAS.get(re.sub(r"[\s_-]", "", val.lower()))
+        if not s or not new:
+            return "Use /status S1 revisao, aceito, rejeitado ou retirado."
+        s["status"] = new
+        tail = " Paro de lembrar das datas dele." if new in INACTIVE else ""
+        return f"Atualizado: S{s['id']} está {esc(new)}.{tail}"
+
+    if cmd == "data":
+        m = re.match(r"(\S+)\s+(.+?)\s+(\d{4}-\d{2}-\d{2})$", arg)
+        s = sub_by_id(st, m.group(1)) if m else None
+        if not m or not s:
+            return "Use /data S1 Notificação 2027-08-20 (data no formato AAAA-MM-DD)."
+        try:
+            dt.date.fromisoformat(m.group(3))
+        except ValueError:
+            return "Data inválida. Use AAAA-MM-DD."
+        label, date = m.group(2), m.group(3)
+        cur = next((x for x in s["milestones"] if x["label"].lower() == label.lower()), None)
+        if cur:
+            cur.update(date=date, reminded=[], manual=True)
+        else:
+            s["milestones"].append({"label": label, "date": date, "reminded": [], "manual": True})
+        return f"Anotado em S{s['id']}: {esc(label)} em {br(date)}."
+
+    if cmd in ("ignorar", "ignora"):
+        k = next((k for k, e in st["events"].items() if str(e.get("id")) == arg.lstrip("#")), None)
+        if not k:
+            return "Use /ignorar 12 (número do evento, veja /eventos)."
+        name = st["events"].pop(k)
+        st["ignored"].append(k)
+        return f"Ok, não aviso mais de {esc(name.get('acronym') or name['name'])}."
+
+    if cmd in ("remover", "apagar"):
+        s = sub_by_id(st, arg)
+        if not s:
+            return "Use /remover S1."
+        st["subs"].remove(s)
+        return f"Removi S{s['id']} ({esc(s['name'])})."
+
+    return "Não entendi. Mande /ajuda para ver os comandos."
+
+
+def run_poll(st):
+    for u in tg("getUpdates", {"offset": st["offset"], "timeout": 0}).get("result", []):
+        st["offset"] = u["update_id"] + 1
+        m = u.get("message") or {}
+        if str((m.get("chat") or {}).get("id")) != str(os.environ["TELEGRAM_CHAT_ID"]):
+            continue  # ignora quem não é você
+        text = (m.get("text") or "").strip()
+        if text:
+            send(handle(text, st))
+
+
+# ---------------------------------------------------------------- principal
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--reminders", action="store_true")
+    ap.add_argument("--poll", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--mock")
+    ap.add_argument("--say")
     ap.add_argument("--get-chat-id", action="store_true")
     a = ap.parse_args()
 
     if a.get_chat_id:
         return get_chat_id()
 
-    state = load_state()
-    # descarta o que já venceu
-    state = {k: v for k, v in state.items() if dt.date.fromisoformat(v["item"]["deadline"]) >= TODAY}
+    st = load_state()
+
+    if a.say:
+        print(handle(a.say, st))
+        if not a.dry_run:
+            save_state(st)
+        return
+
+    if not a.dry_run:
+        run_poll(st)  # responde seus comandos antes de tudo
+        if a.poll:
+            save_state(st)
+            return
+
+    # eventos vencidos saem da lista
+    st["events"] = {k: v for k, v in st["events"].items() if days_left(v["deadline"]) >= 0}
 
     new_items, changed = [], []
-    if not a.reminders:
+    if not a.reminders and not a.poll:
         found = clean(collect_items(a.mock))
         for k, it in found.items():
-            if k not in state:
+            if k in st["ignored"]:
+                continue
+            old = st["events"].get(k)
+            if old is None:
+                it["id"] = st["next_id"]
+                st["next_id"] += 1
+                it["reminded"] = []
+                st["events"][k] = it
                 new_items.append(it)
-                state[k] = {"item": it, "reminded": []}
-            elif state[k]["item"]["deadline"] != it["deadline"]:
-                changed.append(it)
-                state[k] = {"item": it, "reminded": []}
             else:
-                state[k]["item"] = it  # atualiza metadados
+                it["id"] = old["id"]
+                if old["deadline"] != it["deadline"]:
+                    it["reminded"] = []
+                    changed.append(it)
+                else:
+                    it["reminded"] = old.get("reminded", [])
+                st["events"][k] = it
 
+    # lembretes de prazos de submissão
+    fresh = {id(i) for i in new_items + changed}
     due = []
-    for k, v in state.items():
-        left = (dt.date.fromisoformat(v["item"]["deadline"]) - TODAY).days
-        if v["item"] in new_items or v["item"] in changed:
+    for it in st["events"].values():
+        if id(it) not in fresh and due_thresholds(days_left(it["deadline"]), it.setdefault("reminded", []), CFG["reminder_days"]):
+            due.append(it)
+
+    # datas dos seus artigos: reconfere na busca completa e lembra
+    ms_changes = []
+    if not a.reminders and not a.poll and not a.mock and os.environ.get("GROQ_API_KEY"):
+        for s in st["subs"]:
+            if s["status"] not in INACTIVE:
+                for c in merge_milestones(s, lookup_milestones(s["name"], s.get("url"))):
+                    ms_changes.append(f"<b>S{s['id']} · {esc(s['name'])}</b>: {esc(c)}")
+    ms_due = []
+    for s in st["subs"]:
+        if s["status"] in INACTIVE:
             continue
-        for r in sorted(CFG["reminder_days"]):
-            if left <= r and r not in v["reminded"]:
-                due.append(v["item"])
-                v["reminded"] = sorted(set(v["reminded"] + [x for x in CFG["reminder_days"] if x >= left]))
-                break
+        for m in s["milestones"]:
+            left = days_left(m["date"])
+            if left >= 0 and due_thresholds(left, m.setdefault("reminded", []), MS_DAYS):
+                when = "hoje" if left == 0 else f"em {left} dias ({br(m['date'])})"
+                ms_due.append(f"<b>S{s['id']} · {esc(s['name'])}</b>\n{esc(m['label'])}: {when}")
 
     sections = [
-        ("🆕 Novos prazos abertos", new_items),
-        ("🔄 Prazo mudou", changed),
-        ("⏰ Fechando em breve", due),
+        ("📬 Datas dos seus artigos", ms_due),
+        ("🔁 Datas dos seus artigos mudaram", ms_changes),
+        ("🆕 Novos prazos abertos", [fmt_compact(i) for i in order(new_items)]),
+        ("🔄 Prazo mudou", [fmt_item(i) for i in order(changed)]),
+        ("⏰ Fechando em breve", [fmt_compact(i) for i in order(due)]),
     ]
     msgs = build_messages(sections)
-    if not a.reminders and not msgs:
+    full = not a.reminders and not a.poll
+    if full and not msgs:
         msgs = ["Radar Congressos: varredura feita, nada novo esta semana."]
-    if not a.reminders and msgs:
-        n = len(new_items)
-        msgs[0] = f"📡 <b>Radar Congressos</b> · {TODAY.strftime('%d/%m/%Y')} · {n} novo(s)\n" + msgs[0]
+    if full and msgs:
+        msgs[0] = (
+            f"📡 <b>Radar Congressos</b> · {TODAY.strftime('%d/%m/%Y')} · {len(new_items)} novo(s)\n"
+            "Submeteu: /submeti número · Sem interesse: /ignorar número · /ajuda\n\n" + msgs[0]
+        )
 
     for m in msgs:
         if a.dry_run:
@@ -335,8 +611,11 @@ def main():
             send(m)
             time.sleep(1)
     if not a.dry_run:
-        save_state(state)
-    print(f"novos={len(new_items)} mudaram={len(changed)} lembretes={len(due)} mensagens={len(msgs)}", file=sys.stderr)
+        save_state(st)
+    print(
+        f"novos={len(new_items)} mudaram={len(changed)} lembretes={len(due)} datas={len(ms_due)} mensagens={len(msgs)}",
+        file=sys.stderr,
+    )
 
 
 if __name__ == "__main__":
