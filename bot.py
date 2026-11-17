@@ -30,6 +30,7 @@ ROOT = Path(__file__).parent
 STATE_FILE = Path(os.environ.get("RADAR_STATE", ROOT / "state.json"))
 CFG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+TAVILY_URL = "https://api.tavily.com/search"
 TODAY = dt.date.today()
 MS_DAYS = CFG.get("milestone_reminder_days", [14, 7, 2, 0])
 QRANK = {"A1": 0, "A2": 1, "A3": 2, "A4": 3, "B1": 4, "B2": 5, "B3": 6, "B4": 7, "B5": 8, "C": 9}
@@ -103,43 +104,106 @@ def extract_json_array(text):
 
 _BAD_MODELS = set()
 _ANNOUNCED = set()
+SYSTEM_MSG = (
+    "Você é um assistente de pesquisa acadêmica. Use a busca na web e "
+    "confie apenas em páginas oficiais de call for papers. Nunca invente datas ou URLs."
+)
 
 
-def groq_search(prompt):
-    """Tenta cada modelo de CFG['models'] em ordem; pula os que a conta não tem acesso."""
+def _missing(e):
+    return "model_not_found" in str(e) or "does not exist" in str(e)
+
+
+def _announce(label):
+    if label not in _ANNOUNCED:
+        print(f"usando: {label}", file=sys.stderr)
+        _ANNOUNCED.add(label)
+
+
+def _chat(model, prompt, key, browser=False):
+    payload = {
+        "model": model,
+        "temperature": 0.1,
+        "messages": [{"role": "system", "content": SYSTEM_MSG}, {"role": "user", "content": prompt}],
+    }
+    if browser:
+        payload["tools"] = [{"type": "browser_search"}]
+    res = http_json(GROQ_URL, payload, headers={"Authorization": f"Bearer {key}"})
+    return extract_json_array(res["choices"][0]["message"]["content"] or "")
+
+
+def tavily_context(query):
+    key = os.environ.get("TAVILY_API_KEY")
+    if not key:
+        return None
+    res = http_json(
+        TAVILY_URL,
+        {"query": query[:380], "max_results": 10, "search_depth": "basic"},
+        headers={"Authorization": f"Bearer {key}"},
+        timeout=60,
+    )
+    rows = []
+    for n, r in enumerate(res.get("results", []), 1):
+        rows.append(f"[{n}] {r.get('title', '')}\n{r.get('url', '')}\n{(r.get('content') or '')[:700]}")
+    return "\n\n".join(rows)
+
+
+def groq_search(prompt, query=None):
+    """1) sistemas com busca embutida (compound); 2) Tavily + modelo aberto; 3) modelo com browser_search."""
     key = os.environ["GROQ_API_KEY"]
     last = None
     for model in CFG.get("models", [CFG["model"]]):
         if model in _BAD_MODELS:
             continue
-        payload = {
-            "model": model,
-            "temperature": 0.1,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "Você é um assistente de pesquisa acadêmica. Use a busca na web e "
-                    "confie apenas em páginas oficiais de call for papers. Nunca invente datas ou URLs.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-        }
-        if model.startswith("openai/gpt-oss"):
-            payload["tools"] = [{"type": "browser_search"}]
         try:
-            res = http_json(GROQ_URL, payload, headers={"Authorization": f"Bearer {key}"})
+            out = _chat(model, prompt, key)
         except RuntimeError as e:
-            if "model_not_found" in str(e) or "does not exist" in str(e):
-                print(f"modelo {model} indisponível nesta conta, tentando o próximo", file=sys.stderr)
+            if _missing(e):
+                print(f"modelo {model} indisponível nesta conta", file=sys.stderr)
                 _BAD_MODELS.add(model)
                 last = e
                 continue
             raise
-        if model not in _ANNOUNCED:
-            print(f"usando o modelo {model}", file=sys.stderr)
-            _ANNOUNCED.add(model)
-        return extract_json_array(res["choices"][0]["message"]["content"] or "")
-    raise last or RuntimeError("nenhum modelo do Groq disponível")
+        _announce(model)
+        return out
+
+    if query and os.environ.get("TAVILY_API_KEY"):
+        ctx = tavily_context(query)
+        if ctx:
+            p2 = (
+                prompt
+                + "\n\nUse APENAS os resultados de busca abaixo como fonte (não invente nada fora deles; "
+                "se não houver data confirmada, omita o item):\n\n" + ctx
+            )
+            for model in CFG.get("rag_models", []):
+                if model in _BAD_MODELS:
+                    continue
+                try:
+                    out = _chat(model, p2, key)
+                except RuntimeError as e:
+                    if _missing(e):
+                        print(f"modelo {model} indisponível nesta conta", file=sys.stderr)
+                        _BAD_MODELS.add(model)
+                        last = e
+                        continue
+                    raise
+                _announce(f"{model} + Tavily")
+                return out
+
+    for model in CFG.get("browser_models", []):
+        if model in _BAD_MODELS:
+            continue
+        try:
+            out = _chat(model, prompt, key, browser=True)
+        except RuntimeError as e:
+            if _missing(e):
+                _BAD_MODELS.add(model)
+                last = e
+                continue
+            raise
+        _announce(f"{model} + browser_search")
+        return out
+    raise last or RuntimeError("nenhum modelo disponível")
 
 
 def theme_prompt(theme):
@@ -170,35 +234,51 @@ def watch_prompt(names):
     )
 
 
+def _head(t):
+    return re.split(r"[(:]", t)[0].strip()
+
+
 def collect_items(mock=None):
     if mock:
         return json.loads(Path(mock).read_text(encoding="utf-8"))
-    prompts = [theme_prompt(t) for t in CFG["themes"]]
-    prompts += [event_prompt(t) for t in CFG.get("event_themes", [])]
+    jobs = []  # (prompt, consulta de busca curta)
+    for t in CFG["themes"]:
+        jobs.append((theme_prompt(t), f"{_head(t)} call for papers submission deadline 2027"))
+    for t in CFG.get("event_themes", []):
+        jobs.append((event_prompt(t), f"{_head(t)} eventos inscrições chamada bolsas 2027"))
     wl = CFG["watchlist"]
     for k in range(0, len(wl), 7):
-        prompts.append(watch_prompt(wl[k : k + 7]))
+        grp = wl[k : k + 7]
+        jobs.append((watch_prompt(grp), f"{' '.join(grp[:5])} call for papers 2027 submission deadline"))
     for area in CFG.get("ieee_areas", []):
-        prompts.append(theme_prompt(f"conferências e workshops IEEE (e co-patrocinados pela IEEE Computer Society) de {area}"))
-    # varredura por mês de prazo: pega eventos que os temas não cobrem
+        jobs.append(
+            (
+                theme_prompt(f"conferências e workshops IEEE (e co-patrocinados pela IEEE Computer Society) de {area}"),
+                f"IEEE conference {_head(area)} call for papers 2027",
+            )
+        )
     first = TODAY.replace(day=1)
     for k in range(8):
         m = first.month - 1 + k
         d = dt.date(first.year + m // 12, m % 12 + 1, 1)
-        prompts.append(
-            f"Hoje é {TODAY.isoformat()}. Liste o MÁXIMO possível (pelo menos 15) de conferências e workshops acadêmicos de "
-            f"computação, IA, visão, saúde digital, segurança e engenharia (IEEE, ACM, Springer, Elsevier e outros) cujo prazo de "
-            f"submissão de artigos cai em {d.strftime('%m/%Y')}. Só com data confirmada em página oficial e URL oficial.\n\n{SCHEMA}"
+        jobs.append(
+            (
+                f"Hoje é {TODAY.isoformat()}. Liste o MÁXIMO possível (pelo menos 15) de conferências e workshops acadêmicos de "
+                f"tecnologia (computação, IA, software, redes, dados, hardware, saúde digital, segurança e engenharia; IEEE, ACM, "
+                f"Springer, Elsevier e outros) cujo prazo de submissão de artigos cai em {d.strftime('%m/%Y')}. "
+                f"Só com data confirmada em página oficial e URL oficial.\n\n{SCHEMA}",
+                f"call for papers submission deadline {d.strftime('%B %Y')} computer science artificial intelligence conference",
+            )
         )
     items = []
-    for n, p in enumerate(prompts, 1):
+    for n, (p, q) in enumerate(jobs, 1):
         try:
-            got = groq_search(p)
-            print(f"[{n}/{len(prompts)}] {len(got)} itens", file=sys.stderr)
+            got = groq_search(p, q)
+            print(f"[{n}/{len(jobs)}] {len(got)} itens", file=sys.stderr)
             items.extend(got)
         except Exception as e:
-            print(f"[{n}/{len(prompts)}] falhou: {e}", file=sys.stderr)
-        time.sleep(2)
+            print(f"[{n}/{len(jobs)}] falhou: {e}", file=sys.stderr)
+        time.sleep(5)
     return items
 
 
@@ -216,7 +296,7 @@ def lookup_milestones(name, url):
         '{"label": "Evento", "date": "YYYY-MM-DD", "location": "Cidade, País"}]'
     )
     try:
-        got = groq_search(prompt)
+        got = groq_search(prompt, f"{name} important dates notification camera-ready deadline")
     except Exception as e:
         print(f"lookup falhou: {e}", file=sys.stderr)
         return []
