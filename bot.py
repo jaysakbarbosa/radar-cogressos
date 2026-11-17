@@ -101,12 +101,19 @@ def extract_json_array(text):
         return []
 
 
+_BAD_MODELS = set()
+_ANNOUNCED = set()
+
+
 def groq_search(prompt):
+    """Tenta cada modelo de CFG['models'] em ordem; pula os que a conta não tem acesso."""
     key = os.environ["GROQ_API_KEY"]
-    res = http_json(
-        GROQ_URL,
-        {
-            "model": CFG["model"],
+    last = None
+    for model in CFG.get("models", [CFG["model"]]):
+        if model in _BAD_MODELS:
+            continue
+        payload = {
+            "model": model,
             "temperature": 0.1,
             "messages": [
                 {
@@ -116,10 +123,23 @@ def groq_search(prompt):
                 },
                 {"role": "user", "content": prompt},
             ],
-        },
-        headers={"Authorization": f"Bearer {key}"},
-    )
-    return extract_json_array(res["choices"][0]["message"]["content"] or "")
+        }
+        if model.startswith("openai/gpt-oss"):
+            payload["tools"] = [{"type": "browser_search"}]
+        try:
+            res = http_json(GROQ_URL, payload, headers={"Authorization": f"Bearer {key}"})
+        except RuntimeError as e:
+            if "model_not_found" in str(e) or "does not exist" in str(e):
+                print(f"modelo {model} indisponível nesta conta, tentando o próximo", file=sys.stderr)
+                _BAD_MODELS.add(model)
+                last = e
+                continue
+            raise
+        if model not in _ANNOUNCED:
+            print(f"usando o modelo {model}", file=sys.stderr)
+            _ANNOUNCED.add(model)
+        return extract_json_array(res["choices"][0]["message"]["content"] or "")
+    raise last or RuntimeError("nenhum modelo do Groq disponível")
 
 
 def theme_prompt(theme):
