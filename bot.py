@@ -18,6 +18,7 @@ import datetime as dt
 import html
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -59,6 +60,10 @@ SCHEMA = """Retorne SOMENTE um array JSON (sem texto antes ou depois), com objet
 }"""
 
 
+def pick(*opts):
+    return random.choice(opts)
+
+
 def esc(s):
     return html.escape(str(s))
 
@@ -66,7 +71,7 @@ def esc(s):
 # ---------------------------------------------------------------- HTTP helpers
 def http_json(url, payload=None, headers=None, timeout=240, retries=4):
     data = json.dumps(payload).encode() if payload is not None else None
-    hdrs = {"Content-Type": "application/json", **(headers or {})}
+    hdrs = {"Content-Type": "application/json", "User-Agent": "radar-congressos/1.0 (+https://github.com)", "Accept": "application/json", **(headers or {})}
     last = None
     for attempt in range(retries):
         try:
@@ -175,7 +180,9 @@ def lookup_milestones(name, url):
         "Pesquise no site oficial as próximas datas importantes DEPOIS da submissão: divulgação das revisões, "
         "período de rebuttal/discussão, notificação de aceite, camera-ready e data do evento. "
         "Só inclua datas confirmadas no site oficial e ainda não passadas.\n"
-        'Retorne SOMENTE um array JSON: [{"label": "Notificação de aceite", "date": "YYYY-MM-DD"}]'
+        'Inclua também um item com label "Evento" (data de início do evento) e "location" (Cidade, País). '
+        'Retorne SOMENTE um array JSON: [{"label": "Notificação de aceite", "date": "YYYY-MM-DD"}, '
+        '{"label": "Evento", "date": "YYYY-MM-DD", "location": "Cidade, País"}]'
     )
     try:
         got = groq_search(prompt)
@@ -189,7 +196,10 @@ def lookup_milestones(name, url):
         except ValueError:
             continue
         if d >= TODAY and g.get("label"):
-            out.append({"label": str(g["label"])[:60], "date": d.isoformat()})
+            item = {"label": str(g["label"])[:60], "date": d.isoformat()}
+            if g.get("location"):
+                item["location"] = str(g["location"])[:80]
+            out.append(item)
     return out
 
 
@@ -380,8 +390,11 @@ HELP = (
     "/status S1 revisao | aceito | rejeitado | retirado\n"
     "/data S1 Notificação 2027-08-20: adiciona ou corrige uma data\n"
     "/remover S1: apaga o registro\n"
-    "/ignorar 12: esconde o evento #12 e não avisa mais dele\n\n"
-    "Eu respondo em até ~3h e lembro 14, 7 e 2 dias antes de cada data, e no dia."
+    "/ignorar 12: esconde o evento #12 e não avisa mais dele\n"
+    "/agenda: congressos em que você foi aceita, com cidade e data ✈️\n"
+    "/local S1 Paris, França: guarda a cidade do evento\n"
+    "/evento S1 2027-12-07 [2027-12-11]: guarda as datas do evento\n\n"
+    "Respondo em até ~3h e lembro 14, 7 e 2 dias antes de cada data, e no dia. 💅"
 )
 
 
@@ -395,6 +408,14 @@ def sub_by_id(st, tok):
 
 def fmt_sub(s):
     lines = [f"<b>S{s['id']} · {esc(s['name'])}</b> — {esc(s['status'])}"]
+    info = []
+    if s.get("location"):
+        info.append(f"📍 {esc(s['location'])}")
+    if s.get("event_date"):
+        end = f" a {br(s['event_end'])}" if s.get("event_end") else ""
+        info.append(f"🗓 {br(s['event_date'])}{end}")
+    if info:
+        lines.append("  " + "  ".join(info))
     ms = sorted((m for m in s["milestones"] if days_left(m["date"]) >= 0), key=lambda m: m["date"])
     for m in ms:
         left = days_left(m["date"])
@@ -404,6 +425,14 @@ def fmt_sub(s):
     if s.get("url"):
         lines.append(f'  🔗 <a href="{html.escape(s["url"], quote=True)}">site</a>')
     return "\n".join(lines)
+
+
+def apply_event_info(sub, found):
+    for f in found:
+        if f.get("location") and not sub.get("location"):
+            sub["location"] = f["location"]
+        if f["label"].lower().startswith("event") and not sub.get("event_date"):
+            sub["event_date"] = f["date"]
 
 
 def merge_milestones(sub, found):
@@ -427,7 +456,7 @@ def handle(text, st):
     arg = parts[1].strip() if len(parts) > 1 else ""
 
     if cmd in ("start", "ajuda", "help"):
-        return "📡 <b>Radar Congressos</b>\n\n" + HELP
+        return "📡 <b>Radar Congressos</b> ✨ Oi, diva! Vamos publicar artigos?\n\n" + HELP
 
     if cmd == "eventos":
         evs = sorted(st["events"].values(), key=lambda i: i["deadline"])[:25]
@@ -448,14 +477,26 @@ def handle(text, st):
         url = ev.get("url") if ev else None
         sub = {"id": st["next_sub"], "name": name, "url": url, "status": "submetido", "milestones": [], "created": TODAY.isoformat()}
         st["next_sub"] += 1
+        if ev:
+            sub["location"] = ev.get("location") or None
+            try:
+                sub["event_date"] = dt.date.fromisoformat(str(ev.get("event_date"))[:10]).isoformat()
+            except ValueError:
+                pass
         found = lookup_milestones(name, url)
         merge_milestones(sub, found)
+        apply_event_info(sub, found)
         st["subs"].append(sub)
         extra = "" if found else (
             "\n\nNão consegui achar as datas pós-submissão. Confira no site e adicione com "
             f"/data S{sub['id']} Notificação 2027-08-20"
         )
-        return f"✅ Registrado.\n\n{fmt_sub(sub)}{extra}\n\nConfira as datas no site oficial."
+        cheer = pick(
+            "Arrasou, babilônica! ✨ Submissão registrada. Agora é hidratar e esperar o veredito 💅",
+            "Submeteu e já é histórica! 🔥 Guardei tudo aqui, diva ✨",
+            "Gente, ela SUBMETEU! 👑 Anotado, pode brilhar que eu cuido das datas 💅",
+        )
+        return f"{cheer}\n\n{fmt_sub(sub)}{extra}\n\nConfira as datas no site oficial."
 
     if cmd == "minhas":
         if not st["subs"]:
@@ -469,8 +510,33 @@ def handle(text, st):
         if not s or not new:
             return "Use /status S1 revisao, aceito, rejeitado ou retirado."
         s["status"] = new
-        tail = " Paro de lembrar das datas dele." if new in INACTIVE else ""
-        return f"Atualizado: S{s['id']} está {esc(new)}.{tail}"
+        sid = f"S{s['id']}"
+        if new == "aceito":
+            msg = pick(
+                f"ACEITA!!! 🏆✨ Serviu CUNT, rainha! {esc(s['name'])} é SEU. Arrasou, babilônica! 💅🎉",
+                f"Gente, ACEITARAM! 👑🔥 {esc(s['name'])} vai ter você brilhando. Que orgulho, diva! ✨",
+            )
+            missing = []
+            if not s.get("location"):
+                missing.append(f"/local {sid} Cidade, País")
+            if not s.get("event_date"):
+                missing.append(f"/evento {sid} AAAA-MM-DD")
+            if missing:
+                msg += "\n\nMe conta pra eu guardar a viagem:\n" + "\n".join(missing)
+            return msg + "\n\nSua agenda: /agenda ✈️"
+        if new == "rejeitado":
+            return pick(
+                f"Rejeição não define a diva 💔✨ O reviewer 2 não entendeu a arte de {esc(s['name'])}. Reaproveita os comentários e bora pro próximo: /eventos",
+                f"Ai, amiga, doeu 🥲 Mas {esc(s['name'])} só não achou o palco certo ainda. Respira, hidrata e submete de novo 💅",
+            ) + " Paro de lembrar das datas dele."
+        if new == "retirado":
+            return f"Ok, {esc(s['name'])} saiu de cena. 🎭 Paro de lembrar das datas dele."
+        if new == "em revisão":
+            return pick(
+                f"Em revisão... respira, hidrata e confia na diva 💅 ({sid} anotado)",
+                f"Os reviewers estão lendo {esc(s['name'])}. Que sirvam justiça! ✨ ({sid} anotado)",
+            )
+        return f"Atualizado: {sid} está {esc(new)}."
 
     if cmd == "data":
         m = re.match(r"(\S+)\s+(.+?)\s+(\d{4}-\d{2}-\d{2})$", arg)
@@ -489,13 +555,53 @@ def handle(text, st):
             s["milestones"].append({"label": label, "date": date, "reminded": [], "manual": True})
         return f"Anotado em S{s['id']}: {esc(label)} em {br(date)}."
 
+    if cmd == "agenda":
+        ac = sorted((x for x in st["subs"] if x["status"] == "aceito"), key=lambda x: x.get("event_date") or "9999")
+        if not ac:
+            return "Ainda não tem congresso aceito na agenda, mas é questão de tempo, diva 💅 Quando aceitarem: /status S1 aceito"
+        rows = []
+        for x in ac:
+            when = br(x["event_date"]) if x.get("event_date") else "data a confirmar"
+            if x.get("event_end"):
+                when += f" a {br(x['event_end'])}"
+            left = f" (faltam {days_left(x['event_date'])} dias)" if x.get("event_date") and days_left(x["event_date"]) >= 0 else ""
+            rows.append(f"<b>{esc(x['name'])}</b> (S{x['id']})\n📍 {esc(x.get('location') or 'local a confirmar')}\n🗓 {when}{left}")
+        return "<b>✈️ Onde a diva vai brilhar</b>\n\n" + "\n\n".join(rows)
+
+    if cmd == "local":
+        tok, _, place = arg.partition(" ")
+        x = sub_by_id(st, tok) if tok else None
+        if not x or not place.strip():
+            return "Use /local S1 Paris, França."
+        x["location"] = place.strip()[:80]
+        return f"Anotado! 📍 {esc(x['name'])} vai ser em {esc(x['location'])}."
+
+    if cmd == "evento":
+        m = re.match(r"(\S+)\s+(\d{4}-\d{2}-\d{2})(?:\s+(?:a\s+)?(\d{4}-\d{2}-\d{2}))?$", arg)
+        x = sub_by_id(st, m.group(1)) if m else None
+        if not m or not x:
+            return "Use /evento S1 2027-12-07 ou /evento S1 2027-12-07 2027-12-11."
+        try:
+            d1 = dt.date.fromisoformat(m.group(2))
+            d2 = dt.date.fromisoformat(m.group(3)) if m.group(3) else None
+        except ValueError:
+            return "Data inválida. Use AAAA-MM-DD."
+        x["event_date"] = d1.isoformat()
+        x["event_end"] = d2.isoformat() if d2 else None
+        cur = next((k for k in x["milestones"] if k["label"].lower() == "evento"), None)
+        if cur:
+            cur.update(date=d1.isoformat(), reminded=[], manual=True)
+        else:
+            x["milestones"].append({"label": "Evento", "date": d1.isoformat(), "reminded": [], "manual": True})
+        return f"Guardado! 🗓 {esc(x['name'])}: {br(d1.isoformat())}" + (f" a {br(d2.isoformat())}" if d2 else "") + ". Eu aviso quando chegar perto ✈️"
+
     if cmd in ("ignorar", "ignora"):
         k = next((k for k, e in st["events"].items() if str(e.get("id")) == arg.lstrip("#")), None)
         if not k:
             return "Use /ignorar 12 (número do evento, veja /eventos)."
         name = st["events"].pop(k)
         st["ignored"].append(k)
-        return f"Ok, não aviso mais de {esc(name.get('acronym') or name['name'])}."
+        return pick("Próxima! 💅", "Next! ✨", "Tchau, querido(a)! 👋") + f" Não aviso mais de {esc(name.get('acronym') or name['name'])}."
 
     if cmd in ("remover", "apagar"):
         s = sub_by_id(st, arg)
@@ -504,7 +610,7 @@ def handle(text, st):
         st["subs"].remove(s)
         return f"Removi S{s['id']} ({esc(s['name'])})."
 
-    return "Não entendi. Mande /ajuda para ver os comandos."
+    return "Amiga, não entendi 🥲 Manda /ajuda que eu te mostro o que sei fazer."
 
 
 def run_poll(st):
@@ -583,7 +689,9 @@ def main():
     if not a.reminders and not a.poll and not a.mock and os.environ.get("GROQ_API_KEY"):
         for s in st["subs"]:
             if s["status"] not in INACTIVE:
-                for c in merge_milestones(s, lookup_milestones(s["name"], s.get("url"))):
+                got = lookup_milestones(s["name"], s.get("url"))
+                apply_event_info(s, got)
+                for c in merge_milestones(s, got):
                     ms_changes.append(f"<b>S{s['id']} · {esc(s['name'])}</b>: {esc(c)}")
     ms_due = []
     for s in st["subs"]:
@@ -596,20 +704,21 @@ def main():
                 ms_due.append(f"<b>S{s['id']} · {esc(s['name'])}</b>\n{esc(m['label'])}: {when}")
 
     sections = [
-        ("📬 Datas dos seus artigos", ms_due),
-        ("🔁 Datas dos seus artigos mudaram", ms_changes),
+        ("📬 Atenção, diva: datas dos seus artigos", ms_due),
+        ("🔁 Ué, mudaram datas dos seus artigos", ms_changes),
         ("🆕 Novos prazos abertos", [fmt_compact(i) for i in order(new_items)]),
         ("🔄 Prazo mudou", [fmt_item(i) for i in order(changed)]),
-        ("⏰ Fechando em breve", [fmt_compact(i) for i in order(due)]),
+        ("⏰ Corre, diva: fechando em breve", [fmt_compact(i) for i in order(due)]),
     ]
     msgs = build_messages(sections)
     full = not a.reminders and not a.poll
     if full and not msgs:
-        msgs = ["Radar Congressos: varredura feita, nada novo esta semana."]
+        msgs = [pick("Nada novo essa semana, amiga. Hidrata e volta sexta 💧", "Semana de calmaria: nenhum prazo novo. Aproveita pra escrever ✍️✨")]
     if full and msgs:
         msgs[0] = (
             f"📡 <b>Radar Congressos</b> · {TODAY.strftime('%d/%m/%Y')} · {len(new_items)} novo(s)\n"
-            "Submeteu: /submeti número · Sem interesse: /ignorar número · /ajuda\n\n" + msgs[0]
+            + pick("Gente, saiu congresso! Vamos publicar artigos? ✨", "Bora publicar, diva! Olha o que abriu 👀💅", "O Radar chegou com as fofocas acadêmicas ☕✨")
+            + "\nSubmeteu: /submeti número · Sem interesse: /ignorar número · /ajuda\n\n" + msgs[0]
         )
 
     for m in msgs:
