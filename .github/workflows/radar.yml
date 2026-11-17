@@ -2,12 +2,13 @@ name: Radar Congressos
 
 on:
   schedule:
-    - cron: "0 10 * * 1"
-    - cron: "0 10 * * 0,2-6"
+    - cron: "0 15 * * 5"       # sexta 12:00 (Natal): varredura completa com IA
+    - cron: "0 15 * * 0-4,6"   # demais dias 12:00: lembretes de prazos e das datas dos seus artigos
+    - cron: "30 */3 * * *"     # a cada 3h: lê e responde seus comandos no Telegram
   workflow_dispatch:
     inputs:
       mode:
-        description: "full ou reminders"
+        description: "full, reminders ou poll"
         default: "full"
 
 permissions:
@@ -30,9 +31,13 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '0 10 * * 1' && 'full' || 'reminders') }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '0 15 * * 5' && 'full' || (github.event.schedule == '0 15 * * 0-4,6' && 'reminders' || 'poll')) }}
         run: |
-          if [ "$MODE" = "reminders" ]; then python bot.py --reminders; else python bot.py; fi
+          case "$MODE" in
+            full) python bot.py ;;
+            reminders) python bot.py --reminders ;;
+            *) python bot.py --poll ;;
+          esac
       - name: Salvar estado
         run: |
           git config user.name "radar-bot"
