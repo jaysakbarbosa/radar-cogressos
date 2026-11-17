@@ -281,9 +281,17 @@ def fmt_compact(it):
     num = f"#{it['id']} " if it.get("id") else ""
     q = it.get("qualis") or "Qualis ?"
     host = f" (em {esc(it['parent_conference'])})" if it.get("parent_conference") else ""
+    where = []
+    if it.get("location"):
+        where.append(f"📍 {esc(it['location'])}")
+    try:
+        where.append(f"🗓 evento em {br(str(it['event_date'])[:10])}")
+    except (ValueError, TypeError, KeyError):
+        pass
     return (
         f"{star}{kind} {num}<b>{title}</b>{host} · 🏅{esc(q)}\n"
-        f"📅 {br(it['deadline'])} · faltam {days_left(it['deadline'])} dias · "
+        + ("  ".join(where) + "\n" if where else "")
+        + f"📅 prazo {br(it['deadline'])} · faltam {days_left(it['deadline'])} dias · "
         f'<a href="{html.escape(it["url"], quote=True)}">CFP</a>'
     )
 
