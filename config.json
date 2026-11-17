@@ -95,5 +95,10 @@
     "eventos gerais de tecnologia, inovação e startups no Brasil e no mundo (Web Summit, Campus Party, The Developer's Conference, Python Brasil, QCon, Rio Innovation Week, hackathons)",
     "eventos de IA, ciência de dados e pesquisa aberta para a comunidade (meetups, summits, escolas de verão, school and tutorials, Deep Learning Indaba)",
     "bolsas de viagem, vagas de voluntariado e auxílios de diversidade para participar de congressos de computação e IA (student volunteers, travel grants, diversity scholarships)"
+  ],
+  "models": [
+    "groq/compound",
+    "groq/compound-mini",
+    "openai/gpt-oss-120b"
   ]
 }
