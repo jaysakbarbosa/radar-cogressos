@@ -1,6 +1,6 @@
 {
   "model": "groq/compound",
-  "horizon_days": 240,
+  "horizon_days": 365,
   "reminder_days": [
     14,
     7,
