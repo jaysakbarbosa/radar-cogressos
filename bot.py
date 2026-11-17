@@ -88,7 +88,7 @@ def http_json(url, payload=None, headers=None, timeout=240, retries=4):
             if e.code == 429:
                 m = re.search(r"try again in (?:(\d+)m)?([\d.]+)s", body)
                 wait = (int(m.group(1) or 0) * 60 + float(m.group(2))) if m else 0
-                if wait > 90 or "per day" in body:
+                if wait > 90 or "per day" in body or "Request too large" in body:
                     break  # limite diário: esperar não adianta
                 if wait:
                     time.sleep(wait + 1)
@@ -137,7 +137,7 @@ def _chat(model, prompt, key, browser=False, url=None):
         "messages": [{"role": "system", "content": SYSTEM_MSG}, {"role": "user", "content": prompt}],
     }
     url = url or GROQ_URL
-    payload["max_tokens" if url == MISTRAL_URL else "max_completion_tokens"] = 3500
+    payload["max_tokens" if url == MISTRAL_URL else "max_completion_tokens"] = 950 if model.startswith("qwen/") else 3500
     if model.startswith("openai/gpt-oss"):
         payload["reasoning_effort"] = "low"
     if browser:
