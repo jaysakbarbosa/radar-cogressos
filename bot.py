@@ -155,7 +155,7 @@ def tavily_context(query):
         return None
     res = http_json(
         TAVILY_URL,
-        {"query": query[:380], "max_results": 8, "search_depth": "basic"},
+        {"query": query[:380], "max_results": 12, "search_depth": "basic"},
         headers={"Authorization": f"Bearer {key}"},
         timeout=60,
     )
@@ -278,9 +278,9 @@ def collect_items(mock=None):
     for t in CFG.get("event_themes", []):
         jobs.append((event_prompt(t), f"{_head(t)} eventos inscrições chamada bolsas 2027"))
     wl = CFG["watchlist"]
-    for k in range(0, len(wl), 7):
-        grp = wl[k : k + 7]
-        jobs.append((watch_prompt(grp), f"{' '.join(grp[:5])} call for papers 2027 submission deadline"))
+    for k in range(0, len(wl), 3):
+        grp = wl[k : k + 3]
+        jobs.append((watch_prompt(grp), f"{' '.join(grp)} 2027 call for papers submission deadline"))
     for area in CFG.get("ieee_areas", []):
         jobs.append(
             (
@@ -482,16 +482,29 @@ def tg(method, payload):
     return http_json(f"https://api.telegram.org/bot{tok}/{method}", payload, timeout=60)
 
 
+def _chunks(text, size=3800):
+    out, cur = [], ""
+    for line in text.strip().split("\n"):
+        if cur and len(cur) + len(line) + 1 > size:
+            out.append(cur)
+            cur = ""
+        cur += line + "\n"
+    if cur.strip():
+        out.append(cur)
+    return out
+
+
 def send(text):
-    tg(
-        "sendMessage",
-        {
-            "chat_id": os.environ["TELEGRAM_CHAT_ID"],
-            "text": text.strip(),
-            "parse_mode": "HTML",
-            "disable_web_page_preview": True,
-        },
-    )
+    for part in _chunks(text):
+        tg(
+            "sendMessage",
+            {
+                "chat_id": os.environ["TELEGRAM_CHAT_ID"],
+                "text": part.strip(),
+                "parse_mode": "HTML",
+                "disable_web_page_preview": True,
+            },
+        )
 
 
 def get_chat_id():
@@ -609,7 +622,7 @@ def handle(text, st):
         ) + HELP
 
     if cmd == "eventos":
-        evs = sorted(st["events"].values(), key=lambda i: i["deadline"])[:25]
+        evs = sorted(st["events"].values(), key=lambda i: i["deadline"])
         if not evs:
             return "Ainda não tenho eventos na lista. A busca completa roda toda sexta às 12h."
         rows = [
