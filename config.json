@@ -111,5 +111,35 @@
   "mistral_models": [
     "mistral-small-latest",
     "mistral-medium-latest"
+  ],
+  "pt_themes": [
+    "simpósios brasileiros da SBC: chamada de trabalhos e trilhas de artigos (CSBC, SBSC, SBRC, SBBD, SBES, IHC, SBIE)",
+    "congressos brasileiros de inteligência artificial, visão computacional e aprendizado de máquina: chamada de trabalhos",
+    "congressos brasileiros de computação na saúde, informática médica e engenharia biomédica: chamada de trabalhos",
+    "congressos brasileiros de segurança, criptografia, biometria e identidade digital: chamada de trabalhos",
+    "workshops, escolas regionais e eventos de computação no Nordeste e no Brasil: chamada de trabalhos",
+    "eventos, hackathons, bolsas e encontros de mulheres na computação e tecnologia no Brasil: inscrições"
+  ],
+  "watchlist_br": [
+    "SBSC (Sistemas Colaborativos)",
+    "CSBC",
+    "SBRC",
+    "SBBD",
+    "SBES",
+    "IHC",
+    "SBIE",
+    "WebMedia",
+    "SBGames",
+    "ENIAC",
+    "SBAI",
+    "WVC (Workshop de Visão Computacional)",
+    "SBCAS (Computação Aplicada à Saúde)",
+    "SBQS",
+    "KDMiLe",
+    "STIL",
+    "SBSeg",
+    "SIBGRAPI",
+    "BRACIS",
+    "ERBASE"
   ]
 }
