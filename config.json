@@ -107,5 +107,9 @@
   ],
   "browser_models": [
     "openai/gpt-oss-120b"
+  ],
+  "mistral_models": [
+    "mistral-small-latest",
+    "mistral-medium-latest"
   ]
 }
