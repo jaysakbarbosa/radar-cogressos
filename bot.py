@@ -31,6 +31,7 @@ STATE_FILE = Path(os.environ.get("RADAR_STATE", ROOT / "state.json"))
 CFG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 TAVILY_URL = "https://api.tavily.com/search"
+MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions"
 TODAY = dt.date.today()
 MS_DAYS = CFG.get("milestone_reminder_days", [14, 7, 2, 0])
 QRANK = {"A1": 0, "A2": 1, "A3": 2, "A4": 3, "B1": 4, "B2": 5, "B3": 6, "B4": 7, "B5": 8, "C": 9}
@@ -129,18 +130,19 @@ def _announce(label):
         _ANNOUNCED.add(label)
 
 
-def _chat(model, prompt, key, browser=False):
+def _chat(model, prompt, key, browser=False, url=None):
     payload = {
         "model": model,
         "temperature": 0.1,
         "messages": [{"role": "system", "content": SYSTEM_MSG}, {"role": "user", "content": prompt}],
     }
-    payload["max_completion_tokens"] = 3500
+    url = url or GROQ_URL
+    payload["max_tokens" if url == MISTRAL_URL else "max_completion_tokens"] = 3500
     if model.startswith("openai/gpt-oss"):
         payload["reasoning_effort"] = "low"
     if browser:
         payload["tools"] = [{"type": "browser_search"}]
-    res = http_json(GROQ_URL, payload, headers={"Authorization": f"Bearer {key}"})
+    res = http_json(url, payload, headers={"Authorization": f"Bearer {key}"})
     return extract_json_array(res["choices"][0]["message"]["content"] or "")
 
 
@@ -187,6 +189,20 @@ def groq_search(prompt, query=None):
                 + "\n\nUse APENAS os resultados de busca abaixo como fonte (não invente nada fora deles; "
                 "se não houver data confirmada, omita o item):\n\n" + ctx
             )
+            mkey = os.environ.get("MISTRAL_API_KEY")
+            for model in CFG.get("mistral_models", []) if mkey else []:
+                tag = "mistral:" + model
+                if tag in _BAD_MODELS:
+                    continue
+                try:
+                    out = _chat(model, p2, mkey, url=MISTRAL_URL)
+                except RuntimeError as e:
+                    print(f"Mistral {model} falhou ({str(e)[:120]}), tentando o próximo", file=sys.stderr)
+                    _BAD_MODELS.add(tag)
+                    last = e
+                    continue
+                _announce(f"Mistral {model} + Tavily")
+                return out
             for model in CFG.get("rag_models", []):
                 if model in _BAD_MODELS:
                     continue
