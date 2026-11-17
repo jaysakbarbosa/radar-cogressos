@@ -89,5 +89,11 @@
     "segurança, privacidade, criptografia e forense (IEEE S&P, EuroS&P, SaTML, WIFS)",
     "comunicações, IoT, computação em nuvem e borda (CLOUD, ICDCS, INFOCOM, WF-IoT)",
     "robótica e sistemas autônomos (ICRA, IROS, SMC)"
+  ],
+  "event_themes": [
+    "mulheres em tecnologia e diversidade (Grace Hopper, Women Techmakers, PyLadies, Rails Girls, Women in Tech, LatinX in AI, Queer in AI, WiML, Black in AI)",
+    "eventos gerais de tecnologia, inovação e startups no Brasil e no mundo (Web Summit, Campus Party, The Developer's Conference, Python Brasil, QCon, Rio Innovation Week, hackathons)",
+    "eventos de IA, ciência de dados e pesquisa aberta para a comunidade (meetups, summits, escolas de verão, school and tutorials, Deep Learning Indaba)",
+    "bolsas de viagem, vagas de voluntariado e auxílios de diversidade para participar de congressos de computação e IA (student volunteers, travel grants, diversity scholarships)"
   ]
 }
