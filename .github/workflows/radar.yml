@@ -1,0 +1,41 @@
+name: Radar Congressos
+
+on:
+  schedule:
+    - cron: "0 10 * * 1"
+    - cron: "0 10 * * 0,2-6"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "full ou reminders"
+        default: "full"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: radar
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Executar bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '0 10 * * 1' && 'full' || 'reminders') }}
+        run: |
+          if [ "$MODE" = "reminders" ]; then python bot.py --reminders; else python bot.py; fi
+      - name: Salvar estado
+        run: |
+          git config user.name "radar-bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+          git add state.json
+          git diff --cached --quiet || (git commit -m "atualiza estado" && git push)
