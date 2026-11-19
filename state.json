@@ -99,7 +99,8 @@
    "parent_conference": null,
    "qualis": null,
    "reminded": [
-    14
+    14,
+    7
    ],
    "topics": [
     "capacitação",
@@ -141,7 +142,9 @@
    "name": "2027 IEEE International Conference on Multimedia & Expo",
    "parent_conference": null,
    "qualis": "A1",
-   "reminded": [],
+   "reminded": [
+    14
+   ],
    "topics": [
     "Multimedia",
     "Signal Processing",
