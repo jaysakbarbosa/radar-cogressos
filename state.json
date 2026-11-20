@@ -1,48 +1,220 @@
 {
  "events": {
+  "aaai2027|main_track|": {
+   "acronym": "AAAI 2027",
+   "archival": true,
+   "deadline": "2026-12-15",
+   "deadline_type": "full_paper",
+   "event_date": "2027-02-16",
+   "id": 57,
+   "indexing": "AAAI, IEEE",
+   "kind": "main_track",
+   "location": "Montréal, Canada",
+   "name": "AAAI Conference on Artificial Intelligence 2027",
+   "parent_conference": null,
+   "qualis": "A1",
+   "reminded": [],
+   "topics": [
+    "Artificial Intelligence",
+    "Machine Learning",
+    "Robotics"
+   ],
+   "url": "https://trybibby.com/conference-deadlines/ai"
+  },
   "aime2027|main_track|": {
    "acronym": "AIME 2027",
    "archival": true,
-   "deadline": "2026-12-01",
+   "deadline": "2027-02-07",
    "deadline_type": "full_paper",
-   "event_date": "2027-05-13",
+   "event_date": "2027-07-05",
    "id": 2,
    "indexing": "Springer",
    "kind": "main_track",
    "location": "Amsterdam, Netherlands",
-   "name": "Artificial Intelligence in Medicine",
+   "name": "25th International Conference on Artificial Intelligence in Medicine",
    "parent_conference": null,
-   "qualis": "A1",
-   "reminded": [
-    14
-   ],
+   "qualis": null,
+   "reminded": [],
    "topics": [
-    "AI in Medicine",
-    "Healthcare",
-    "Clinical AI"
+    "AI",
+    "Medicine",
+    "Healthcare"
    ],
-   "url": "https://easychair.org/cfp/aime2027"
+   "url": "https://www.grupponazionalebioingegneria.it/en/aime-2027-25th-international-conference-on-artificial-intelligence-in-medicine-call-for-papers-2"
+  },
+  "aiset2027|main_track|": {
+   "acronym": "AISET 2027",
+   "archival": true,
+   "deadline": "2027-04-28",
+   "deadline_type": "full_paper",
+   "event_date": "2027-05-03",
+   "id": 36,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": "Cairo, Egypt",
+   "name": "International Conference on Artificial Intelligence, Systems, and Emerging Technologies 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "artificial intelligence",
+    "emerging technologies",
+    "systems"
+   ],
+   "url": "https://www.allconferencealert.com/ieee/may"
+  },
+  "aistats2027|main_track|": {
+   "acronym": "AISTATS 2027",
+   "archival": true,
+   "deadline": "2026-11-23",
+   "deadline_type": "full_paper",
+   "event_date": "2027-05-03",
+   "id": 32,
+   "indexing": "JMLR",
+   "kind": "main_track",
+   "location": "Montreal, Canada (presencial)",
+   "name": "30th International Conference on Artificial Intelligence and Statistics",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "AI",
+    "Machine Learning",
+    "Statistics"
+   ],
+   "url": "https://virtual.aistats.org/Conferences/2027/CallForPapers"
   },
   "case2027|main_track|": {
    "acronym": "CASE 2027",
    "archival": true,
    "deadline": "2027-03-01",
    "deadline_type": "full_paper",
-   "event_date": "2027-08-23",
+   "event_date": null,
    "id": 21,
-   "indexing": "IEEE",
+   "indexing": "IEEE Xplore",
    "kind": "main_track",
-   "location": "USA",
-   "name": "2027 IEEE 23rd International Conference on Automation Science and Engineering",
+   "location": null,
+   "name": "IEEE International Conference on Automation Science and Engineering 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "automation",
+    "systems engineering",
+    "embedded",
+    "control"
+   ],
+   "url": "https://www.ieee-ras.org/event/2027-ieee-23rd-international-conference-on-automation-science-and-engineering-case-71151"
+  },
+  "cnpqprodutividade2027|grant|": {
+   "acronym": "CNPq Produtividade 2027",
+   "archival": null,
+   "deadline": "2027-01-07",
+   "deadline_type": "grant",
+   "event_date": "2027-08-01",
+   "id": 49,
+   "indexing": null,
+   "kind": "grant",
+   "location": "Brasil (nacional)",
+   "name": "Chamada de Bolsas de Produtividade do CNPq",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "bolsas",
+    "produtividade",
+    "pesquisa"
+   ],
+   "url": "https://www.gov.br/cnpq/pt-br/assuntos/noticias/defeso-eleitoral/cnpq-abre-inscricoes-para-chamada-bolsas-de-produtividade-propostas-podem-ser-enviadas-ate-7-01"
+  },
+  "cobep2027|main_track|": {
+   "acronym": "COBEP 2027",
+   "archival": true,
+   "deadline": "2027-04-30",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 45,
+   "indexing": null,
+   "kind": "main_track",
+   "location": "Rio de Janeiro, Brazil",
+   "name": "COBEP / SPEC / ECCE-LAC 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "electrical engineering",
+    "electronics",
+    "embedded systems",
+    "telecommunications",
+    "automation"
+   ],
+   "url": "https://cobep2027.softaliza.com.br"
+  },
+  "computingconf2027|main_track|": {
+   "acronym": "ComputingConf 2027",
+   "archival": true,
+   "deadline": "2026-12-01",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 56,
+   "indexing": "Springer",
+   "kind": "main_track",
+   "location": "Online",
+   "name": "15th Computing Conference 2027 – Round 2",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "AI",
+    "HPC",
+    "Quantum Computing",
+    "Cloud",
+    "Edge",
+    "Sustainable Computing"
+   ],
+   "url": "https://saiconference.com/Computing/CallforPapers"
+  },
+  "date2027|workshop|": {
+   "acronym": "DATE 2027",
+   "archival": true,
+   "deadline": "2027-01-17",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 59,
+   "indexing": "IEEE",
+   "kind": "workshop",
+   "location": "online",
+   "name": "DATE 2027 - Design, Automation & Test in Europe Conference",
    "parent_conference": null,
    "qualis": "A2",
    "reminded": [],
    "topics": [
-    "automation",
-    "science and engineering",
-    "robotics"
+    "hardware design",
+    "electronic testing",
+    "automation"
    ],
-   "url": "https://www.ieee-ras.org/event/2027-ieee-23rd-international-conference-on-automation-science-and-engineering-case-71151"
+   "url": "https://www.date-conference.com/call-for-papers"
+  },
+  "deeptechsummit2027|event|": {
+   "acronym": "Deep Tech Summit 2027",
+   "archival": false,
+   "deadline": "2027-09-22",
+   "deadline_type": "registration",
+   "event_date": "2027-09-22",
+   "id": 48,
+   "indexing": null,
+   "kind": "event",
+   "location": "São Paulo, Brasil",
+   "name": "Deep Tech Summit 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "deep tech",
+    "innovation",
+    "startup"
+   ],
+   "url": "https://doity.com.br/deep-tech-summit-2027"
   },
   "eacl2027|workshop|eacl 2027": {
    "acronym": "EACL 2027",
@@ -51,18 +223,38 @@
    "deadline_type": "full_paper",
    "event_date": null,
    "id": 10,
-   "indexing": "ACL Anthology",
+   "indexing": "PMLR",
    "kind": "workshop",
-   "location": "Online/In-person (TBD)",
+   "location": "Athens, Greece",
    "name": "EACL 2027 Workshops",
    "parent_conference": "EACL 2027",
    "qualis": "A1",
    "reminded": [],
    "topics": [
     "NLP",
-    "Workshops"
+    "computational linguistics"
    ],
    "url": "https://2027.eacl.org/calls/workshops"
+  },
+  "ease2027|workshop|ease 2027": {
+   "acronym": "EASE 2027",
+   "archival": true,
+   "deadline": "2027-03-02",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 43,
+   "indexing": null,
+   "kind": "workshop",
+   "location": "Location not specified in source",
+   "name": "EASE 2027 Workshop Paper Submission",
+   "parent_conference": "EASE 2027",
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "Software Engineering",
+    "Empirical Studies"
+   ],
+   "url": "https://conf.researchr.org/submissiondates"
   },
   "efmimie2027|main_track|": {
    "acronym": "EFMI MIE 2027",
@@ -109,6 +301,89 @@
    ],
    "url": "https://www.instagram.com/reel/DfKpKtOtMve"
   },
+  "hotosnext2027|workshop|usenix": {
+   "acronym": "HotOSnext 2027",
+   "archival": true,
+   "deadline": "2027-02-01",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 63,
+   "indexing": "USENIX",
+   "kind": "workshop",
+   "location": "Online",
+   "name": "USENIX Workshop on Hot Topics in Operating Systems (HotOSnext)",
+   "parent_conference": "USENIX",
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "operating systems",
+    "systems research"
+   ],
+   "url": "https://researchguru.ai/conferences/deadlines/february-2027"
+  },
+  "icc2027|main_track|": {
+   "acronym": "ICC 2027",
+   "archival": true,
+   "deadline": "2027-01-15",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 52,
+   "indexing": "IEEE Xplore",
+   "kind": "main_track",
+   "location": null,
+   "name": "IEEE International Conference on Communications 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "communications",
+    "networking",
+    "wireless",
+    "AI"
+   ],
+   "url": "https://www.facebook.com/IEEEComSoc/posts/ieee-secon-2027-is-now-accepting-submissions-we-invite-researchers-academicians-/1469165335245775"
+  },
+  "icigp2027|main_track|": {
+   "acronym": "ICIGP 2027",
+   "archival": null,
+   "deadline": "2026-12-10",
+   "deadline_type": "full_paper",
+   "event_date": "2027-01-15",
+   "id": 41,
+   "indexing": null,
+   "kind": "main_track",
+   "location": "China",
+   "name": "International Conference on Image and Graphics Processing",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "image processing",
+    "computer graphics"
+   ],
+   "url": "https://www.iconf.com/news/887"
+  },
+  "iclr2027|main_track|": {
+   "acronym": "ICLR 2027",
+   "archival": true,
+   "deadline": "2026-12-17",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 58,
+   "indexing": "OpenReview, PMLR",
+   "kind": "main_track",
+   "location": "Online",
+   "name": "International Conference on Learning Representations 2027",
+   "parent_conference": null,
+   "qualis": "A1",
+   "reminded": [],
+   "topics": [
+    "Deep Learning",
+    "Representation Learning",
+    "Neural Networks"
+   ],
+   "url": "https://trybibby.com/conference-deadlines/ai"
+  },
   "iclr2027|workshop|iclr 2027": {
    "acronym": "ICLR 2027",
    "archival": true,
@@ -118,14 +393,14 @@
    "id": 11,
    "indexing": "OpenReview",
    "kind": "workshop",
-   "location": "Online/In-person (TBD)",
-   "name": "ICLR 2027 Workshops",
+   "location": "Location not specified in source",
+   "name": "ICLR 2027 Workshop Contributions",
    "parent_conference": "ICLR 2027",
    "qualis": "A1",
    "reminded": [],
    "topics": [
     "Machine Learning",
-    "Workshops"
+    "Deep Learning"
    ],
    "url": "https://iclr.cc/Conferences/2027/CallForWorkshops"
   },
@@ -157,41 +432,235 @@
    "archival": true,
    "deadline": "2027-01-22",
    "deadline_type": "full_paper",
-   "event_date": null,
+   "event_date": "2027-07-31",
    "id": 8,
-   "indexing": "PMLR",
+   "indexing": "PMLR, OpenReview",
    "kind": "main_track",
-   "location": "TBD",
+   "location": "Rio de Janeiro, Brazil",
    "name": "International Conference on Machine Learning 2027",
    "parent_conference": null,
    "qualis": "A1",
    "reminded": [],
    "topics": [
-    "Machine Learning",
-    "AI"
+    "machine learning",
+    "deep learning",
+    "reinforcement learning",
+    "probabilistic modeling"
    ],
-   "url": "https://icml.cc"
+   "url": "https://icml.cc/Conferences/2027/CallForPapers"
+  },
+  "icsa2027|main_track|": {
+   "acronym": "ICSA 2027",
+   "archival": null,
+   "deadline": "2026-11-25",
+   "deadline_type": "full_paper",
+   "event_date": "2027-01-22",
+   "id": 40,
+   "indexing": null,
+   "kind": "main_track",
+   "location": "Malaysia",
+   "name": "International Conference on Software and Computer Applications",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "software",
+    "computer applications"
+   ],
+   "url": "https://www.iconf.com/news/887"
+  },
+  "icsa2027|workshop|icsa 2027": {
+   "acronym": "ICSA 2027",
+   "archival": null,
+   "deadline": "2026-11-25",
+   "deadline_type": "full_paper",
+   "event_date": "2027-01-22",
+   "id": 42,
+   "indexing": null,
+   "kind": "workshop",
+   "location": "Malaysia",
+   "name": "International Conference on Software and Computer Applications",
+   "parent_conference": "ICSA 2027",
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "software",
+    "computer applications"
+   ],
+   "url": "https://www.iconf.com/news/887"
+  },
+  "icse2027|main_track|": {
+   "acronym": "ICSE 2027",
+   "archival": true,
+   "deadline": "2027-02-09",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 62,
+   "indexing": "ACM",
+   "kind": "main_track",
+   "location": "TBD",
+   "name": "International Conference on Software Engineering",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "software engineering",
+    "software testing",
+    "software maintenance"
+   ],
+   "url": "https://trybibby.com/conference-deadlines"
+  },
+  "ieeecomputer2027|event|": {
+   "acronym": "IEEE Computer 2027",
+   "archival": true,
+   "deadline": "2027-02-01",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 60,
+   "indexing": "IEEE",
+   "kind": "event",
+   "location": "Online",
+   "name": "IEEE Computer Magazine Call for Papers",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "AI",
+    "software engineering",
+    "hardware",
+    "systems"
+   ],
+   "url": "https://www.computer.org/publications/author-resources/calls-for-papers"
+  },
+  "ieeecsaise2026|main_track|": {
+   "acronym": "IEEE CS AISE 2026",
+   "archival": true,
+   "deadline": "2026-12-01",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 55,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": "Online",
+   "name": "IEEE Computer Society Special Issue on AI for Software Engineering",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "AI",
+    "Software Engineering",
+    "Machine Learning"
+   ],
+   "url": "https://www.computer.org/publications/author-resources/calls-for-papers"
+  },
+  "ieeesp2027|main_track|": {
+   "acronym": "IEEE S&P 2027",
+   "archival": true,
+   "deadline": "2027-11-17",
+   "deadline_type": "full_paper",
+   "event_date": "2027-05-22",
+   "id": 34,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": "San Francisco Bay Area, USA (online/hybrid)",
+   "name": "IEEE Symposium on Security and Privacy 2027",
+   "parent_conference": null,
+   "qualis": "A1",
+   "reminded": [],
+   "topics": [
+    "cryptography",
+    "privacy",
+    "secure machine learning",
+    "security"
+   ],
+   "url": "https://www.ieee-security.org/CFP/2027/sp.html"
   },
   "ijcai2027|main_track|": {
    "acronym": "IJCAI 2027",
    "archival": true,
-   "deadline": "2027-01-04",
-   "deadline_type": "abstract",
+   "deadline": "2027-01-11",
+   "deadline_type": "full_paper",
    "event_date": "2027-08-07",
    "id": 20,
    "indexing": "ACM, IEEE",
    "kind": "main_track",
    "location": "Kyoto, Japan",
-   "name": "International Joint Conference on Artificial Intelligence",
+   "name": "International Joint Conference on Artificial Intelligence 2027",
    "parent_conference": null,
    "qualis": "A1",
    "reminded": [],
    "topics": [
-    "AI",
+    "Artificial Intelligence",
     "Machine Learning",
-    "Knowledge Representation"
+    "Robotics",
+    "AI for Social Good"
    ],
    "url": "https://2027.ijcai.org/ijcai-2027-call-for-papers-main-track"
+  },
+  "ijcb2027|main_track|": {
+   "acronym": "IJCB 2027",
+   "archival": true,
+   "deadline": "2027-04-09",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 50,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": null,
+   "name": "IEEE International Joint Conference on Biometrics",
+   "parent_conference": null,
+   "qualis": "A1",
+   "reminded": [],
+   "topics": [
+    "biometrics",
+    "face recognition",
+    "fingerprint",
+    "iris",
+    "multimodal"
+   ],
+   "url": "https://ijcb2027.ieee-biometrics.org/call-for-papers"
+  },
+  "inovastartups2027|grant|": {
+   "acronym": "Inova Startups 2027",
+   "archival": null,
+   "deadline": "2026-11-30",
+   "deadline_type": "grant",
+   "event_date": null,
+   "id": 46,
+   "indexing": null,
+   "kind": "grant",
+   "location": "Florianópolis, Brasil",
+   "name": "Inova Startups 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "startup",
+    "innovation",
+    "investment"
+   ],
+   "url": "https://aloratecnologia.com.br/inova-startups"
+  },
+  "iros2027|main_track|": {
+   "acronym": "IROS 2027",
+   "archival": true,
+   "deadline": "2027-03-01",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 53,
+   "indexing": "IEEE Xplore",
+   "kind": "main_track",
+   "location": null,
+   "name": "IEEE/RSJ International Conference on Intelligent Robots and Systems 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "robotics",
+    "intelligent systems",
+    "AI"
+   ],
+   "url": "https://www.ieee-ras.org/event/2027-ieee-rsj-international-conference-on-intelligent-robots-and-systems-iros-70525"
   },
   "ivmsp2027|workshop|": {
    "acronym": "IVMSP 2027",
@@ -208,9 +677,9 @@
    "qualis": null,
    "reminded": [],
    "topics": [
-    "Image Processing",
-    "Video Processing",
-    "Multidimensional Signals"
+    "image processing",
+    "video processing",
+    "multidimensional signal processing"
    ],
    "url": "https://signalprocessingsociety.org/event-categories/conferences-workshops"
   },
@@ -238,6 +707,28 @@
    ],
    "url": "https://easychair.org/cfp/latinIoT2027"
   },
+  "lciot2027|main_track|": {
+   "acronym": "LC-IoT 2027",
+   "archival": true,
+   "deadline": "2026-11-28",
+   "deadline_type": "full_paper",
+   "event_date": null,
+   "id": 54,
+   "indexing": "IEEE Xplore",
+   "kind": "main_track",
+   "location": "Santiago, Chile",
+   "name": "IEEE Latin American Conference on Internet of Things 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "IoT",
+    "cyber‑physical systems",
+    "embedded systems",
+    "wireless communications"
+   ],
+   "url": "https://easychair.org/cfp/latinIoT2027"
+  },
   "memea2027|main_track|": {
    "acronym": "MeMeA 2027",
    "archival": true,
@@ -259,24 +750,45 @@
    ],
    "url": "https://memea.ieee-ims.org/2027/authors/call-for-papers"
   },
-  "midl2027|main_track|": {
-   "acronym": "MIDL 2027",
+  "mhcic2027|main_track|": {
+   "acronym": "MHCIC 2027",
    "archival": true,
-   "deadline": "2027-01-31",
+   "deadline": "2027-01-21",
    "deadline_type": "full_paper",
    "event_date": null,
-   "id": 4,
-   "indexing": "PMLR",
+   "id": 44,
+   "indexing": "IEEE",
    "kind": "main_track",
    "location": "Online",
-   "name": "Medical Imaging with Deep Learning",
+   "name": "Multimedia and Human-Computer Interaction Conference 2027",
    "parent_conference": null,
    "qualis": null,
    "reminded": [],
    "topics": [
-    "Deep Learning",
-    "Medical Imaging",
-    "Foundation Models"
+    "multimedia",
+    "human-computer interaction",
+    "interaction techniques"
+   ],
+   "url": "https://mhciconference.com"
+  },
+  "midl2027|main_track|": {
+   "acronym": "MIDL 2027",
+   "archival": true,
+   "deadline": "2026-12-04",
+   "deadline_type": "full_paper",
+   "event_date": "2027-07-14",
+   "id": 4,
+   "indexing": "OpenReview",
+   "kind": "main_track",
+   "location": "Porto, Portugal",
+   "name": "Medical Imaging with Deep Learning 2027",
+   "parent_conference": null,
+   "qualis": "A1",
+   "reminded": [],
+   "topics": [
+    "medical imaging",
+    "deep learning",
+    "computer vision"
    ],
    "url": "https://2027.midl.io/call-for-papers"
   },
@@ -364,6 +876,28 @@
    ],
    "url": "https://www.facebook.com/IEEEComSoc/posts/ieee-secon-2027-is-now-accepting-submissions-we-invite-researchers-academicians-/1469165335245775"
   },
+  "precisionmedai2027|main_track|": {
+   "acronym": "PrecisionMed AI 2027",
+   "archival": true,
+   "deadline": "2027-05-30",
+   "deadline_type": "abstract",
+   "event_date": null,
+   "id": 33,
+   "indexing": null,
+   "kind": "main_track",
+   "location": "online",
+   "name": "2nd International Conference on Precision Medicine and AI Healthcare",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "precision medicine",
+    "AI healthcare",
+    "multimodal data",
+    "clinical decision support"
+   ],
+   "url": "https://healthcare.pagesconferences.org/call-for-papers"
+  },
   "rss2027|main_track|": {
    "acronym": "RSS 2027",
    "archival": true,
@@ -371,17 +905,18 @@
    "deadline_type": "full_paper",
    "event_date": null,
    "id": 12,
-   "indexing": "IEEE",
+   "indexing": null,
    "kind": "main_track",
-   "location": "Online (Location not specified in source)",
-   "name": "Robotics: Science and Systems",
+   "location": "Online / To be announced",
+   "name": "Robotics: Science and Systems 2027",
    "parent_conference": null,
-   "qualis": "A1",
+   "qualis": null,
    "reminded": [],
    "topics": [
     "robotics",
-    "systems",
-    "autonomy"
+    "automation",
+    "control",
+    "machine learning"
    ],
    "url": "https://roboticsconference.org/information/cfp"
   },
@@ -405,6 +940,91 @@
    ],
    "url": "http://aideadlines.org"
   },
+  "sbrc2027|main_track|": {
+   "acronym": "SBRC 2027",
+   "archival": true,
+   "deadline": "2027-01-11",
+   "deadline_type": "full_paper",
+   "event_date": "2027-05-15",
+   "id": 65,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": "online",
+   "name": "Simpósio Brasileiro de Redes de Computadores",
+   "parent_conference": null,
+   "qualis": "A2",
+   "reminded": [],
+   "topics": [
+    "redes",
+    "sistemas distribuídos",
+    "segurança de redes"
+   ],
+   "url": "https://www.instagram.com/reel/DdeOmUrRMVs"
+  },
+  "sbsi2027|main_track|": {
+   "acronym": "SBSI 2027",
+   "archival": true,
+   "deadline": "2026-12-11",
+   "deadline_type": "full_paper",
+   "event_date": "2027-05-17",
+   "id": 64,
+   "indexing": "Springer",
+   "kind": "main_track",
+   "location": "Campo Grande, Brasil",
+   "name": "Simpósio Brasileiro de Sistemas de Informação",
+   "parent_conference": null,
+   "qualis": "A2",
+   "reminded": [],
+   "topics": [
+    "Sistemas de Informação",
+    "Banco de Dados",
+    "Engenharia de Software"
+   ],
+   "url": "https://sbsi.sbc.org.br/2027/chamadas/chamada-pesquisa"
+  },
+  "secon2027|main_track|": {
+   "acronym": "SECON 2027",
+   "archival": true,
+   "deadline": "2027-01-15",
+   "deadline_type": "full_paper",
+   "event_date": "2027-03-20",
+   "id": 39,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": "Online",
+   "name": "IEEE International Conference on SECON 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "machine learning",
+    "networks",
+    "performance",
+    "security",
+    "sustainability"
+   ],
+   "url": "https://www.facebook.com/IEEEComSoc/posts/ieee-secon-2027-is-now-accepting-submissions-we-invite-researchers-academicians-/1469165335245775"
+  },
+  "sigir2027workshop|workshop|sigir 2027": {
+   "acronym": "SIGIR 2027 Workshop",
+   "archival": true,
+   "deadline": "2027-04-17",
+   "deadline_type": "full_paper",
+   "event_date": "2027-07-23",
+   "id": 51,
+   "indexing": "ACM",
+   "kind": "workshop",
+   "location": "San Jose, USA",
+   "name": "SIGIR 2027 Workshop",
+   "parent_conference": "SIGIR 2027",
+   "qualis": "A2",
+   "reminded": [],
+   "topics": [
+    "information retrieval",
+    "workshop topics as defined by SIGIR"
+   ],
+   "url": "https://sigir.org/sigir2027/workshops"
+  },
   "sigir2027|main_track|": {
    "acronym": "SIGIR 2027",
    "archival": true,
@@ -412,18 +1032,84 @@
    "deadline_type": "full_paper",
    "event_date": "2027-07-18",
    "id": 28,
-   "indexing": "ACM",
+   "indexing": "IEEE, ACM",
    "kind": "main_track",
-   "location": "San Jose, California, USA",
-   "name": "ACM International Conference on Research and Development in Information Retrieval",
+   "location": "San Jose, California, USA (presencial)",
+   "name": "SIGIR 2027 - ACM Special Interest Group on Information Retrieval",
    "parent_conference": null,
-   "qualis": "A1",
+   "qualis": null,
    "reminded": [],
    "topics": [
     "Information Retrieval",
-    "Search"
+    "Machine Learning",
+    "Data Mining"
    ],
    "url": "https://mlciv.com/ai-deadlines"
+  },
+  "spglobaltech2027|grant|": {
+   "acronym": "SP Global Tech 2027",
+   "archival": null,
+   "deadline": "2026-11-22",
+   "deadline_type": "grant",
+   "event_date": null,
+   "id": 47,
+   "indexing": null,
+   "kind": "grant",
+   "location": "São Paulo, Brasil",
+   "name": "SP Global Tech – Programa de Internacionalização de Empresas de Base Tecnológica",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "internationalization",
+    "technology",
+    "startup"
+   ],
+   "url": "https://agencia.fapesp.br/sp-global-tech-seleciona-startups-para-programa-de-internacionalizacao/59563"
+  },
+  "spra2027|main_track|": {
+   "acronym": "SPRA 2027",
+   "archival": true,
+   "deadline": "2027-03-03",
+   "deadline_type": "full_paper",
+   "event_date": "2027-11-10",
+   "id": 38,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": "Tokyo, Japan",
+   "name": "7th Symposium on Pattern Recognition and Applications 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "pattern recognition",
+    "computer vision",
+    "image analysis",
+    "machine learning",
+    "video processing"
+   ],
+   "url": "https://easychair.org/cfp/new"
+  },
+  "spsympo2027|main_track|": {
+   "acronym": "SPSympo 2027",
+   "archival": true,
+   "deadline": "2027-04-01",
+   "deadline_type": "full_paper",
+   "event_date": "2027-09-28",
+   "id": 37,
+   "indexing": "IEEE",
+   "kind": "main_track",
+   "location": "Warsaw, Poland",
+   "name": "Signal Processing Symposium 2027",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "signal processing",
+    "image processing",
+    "multidimensional signals"
+   ],
+   "url": "https://signalprocessingsociety.org/event-categories/conferences-workshops"
   },
   "tits2027|main_track|": {
    "acronym": "T-ITS 2027",
@@ -444,6 +1130,49 @@
     "Foundation Models"
    ],
    "url": "https://www.computer.org/publications/author-resources/calls-for-papers"
+  },
+  "uai2027|main_track|": {
+   "acronym": "UAI 2027",
+   "archival": true,
+   "deadline": "2027-02-06",
+   "deadline_type": "full_paper",
+   "event_date": "2027-07-01",
+   "id": 61,
+   "indexing": "ACM, IEEE",
+   "kind": "main_track",
+   "location": "TBD, USA",
+   "name": "Conference on Uncertainty in Artificial Intelligence",
+   "parent_conference": null,
+   "qualis": null,
+   "reminded": [],
+   "topics": [
+    "probabilistic modeling",
+    "causal inference",
+    "reasoning under uncertainty"
+   ],
+   "url": "https://trybibby.com/conference-deadlines"
+  },
+  "usenixsecurity2027|main_track|": {
+   "acronym": "USENIX Security 2027",
+   "archival": true,
+   "deadline": "2027-01-26",
+   "deadline_type": "full_paper",
+   "event_date": "2027-08-14",
+   "id": 35,
+   "indexing": "USENIX",
+   "kind": "main_track",
+   "location": "Boston, Massachusetts, USA (online/hybrid)",
+   "name": "USENIX Security Symposium 2027",
+   "parent_conference": null,
+   "qualis": "A1",
+   "reminded": [],
+   "topics": [
+    "cryptography",
+    "privacy",
+    "image security",
+    "secure machine learning"
+   ],
+   "url": "https://www.usenix.org/conference/usenixsecurity27/call-for-papers"
   },
   "usenixsecurity27|main_track|": {
    "acronym": "USENIX Security '27",
@@ -531,7 +1260,7 @@
   }
  },
  "ignored": [],
- "next_id": 32,
+ "next_id": 66,
  "next_sub": 1,
  "offset": 222979447,
  "subs": []
